@@ -25,8 +25,7 @@ class _ServiceClockScreenState extends State<ServiceClockScreen> {
   static const _allStations = 'All stations';
 
   String _stationFilter = _allStations;
-  String _readback =
-      'Readback: service-clock showing 3 batches for all stations; next close is 11:30 lunch.';
+  String? _readback;
 
   @override
   Widget build(BuildContext context) {
@@ -47,6 +46,7 @@ class _ServiceClockScreenState extends State<ServiceClockScreen> {
                   : second,
             )
             .serviceWindow;
+    final readback = _readback ?? _readbackFor(visible, nextClose);
 
     return Scaffold(
       appBar: AppBar(
@@ -54,7 +54,9 @@ class _ServiceClockScreenState extends State<ServiceClockScreen> {
         actions: [
           IconButton(
             tooltip: 'Refresh readback',
-            onPressed: () => _recordReadback(visible, nextClose),
+            onPressed: () => setState(() {
+              _recordReadback(visible, nextClose);
+            }),
             icon: const Icon(Icons.fact_check_outlined),
           ),
         ],
@@ -113,7 +115,7 @@ class _ServiceClockScreenState extends State<ServiceClockScreen> {
               lateRiskCount: lateRisk.length,
             ),
             const SizedBox(height: 12),
-            _ReadbackPanel(readback: _readback),
+            _ReadbackPanel(readback: readback),
           ],
         ),
       ),
@@ -152,8 +154,11 @@ class _ServiceClockScreenState extends State<ServiceClockScreen> {
   }
 
   void _recordReadback(List<PrepBatch> batches, String nextClose) {
-    _readback =
-        'Readback: service-clock showing ${batches.length} batches for $_stationFilter; next close is $nextClose.';
+    _readback = _readbackFor(batches, nextClose);
+  }
+
+  String _readbackFor(List<PrepBatch> batches, String nextClose) {
+    return 'Readback: service-clock showing ${batches.length} batches for $_stationFilter; next close is $nextClose.';
   }
 }
 

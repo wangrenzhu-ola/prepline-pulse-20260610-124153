@@ -4,7 +4,7 @@ class PrepTheme {
   static const background = Color(0xFF101014);
   static const surface = Color(0xFF1B1A22);
   static const elevated = Color(0xFF2D2824);
-  static const gold = Color(0xFFD4AF37);
+  static const gold = Color(0xFFE09B46);
   static const violet = Color(0xFFA78BFA);
   static const success = Color(0xFF25B05F);
   static const warning = Color(0xFFF29E0C);

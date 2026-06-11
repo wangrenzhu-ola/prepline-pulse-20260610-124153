@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
 
-import '../data/prep_seed_data.dart';
 import '../models/pulse_store_models.dart';
+import '../screens/protocol_screen.dart';
 import '../state/prep_board_controller.dart';
 import '../theme/prep_theme.dart';
+import '../widgets/operational_page.dart';
 import '../widgets/prep_widgets.dart';
 
 // page_id: pulse-store | route_name: /pulse-store | widget_class: PulseStoreScreen | state_key: pulseStoreState
@@ -15,16 +16,17 @@ class PulseStoreScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final controller = PrepBoardScope.of(context);
-    return PrepScaffold(
-      contract: pageContracts[7],
-      hero: ContractHero(contract: pageContracts[7], assetPath: batchAsset),
+    return OperationalPage(
+      pageId: 'pulse-store',
+      title: 'Store',
+      showHero: false,
       children: [
         InfoCard(
-          title: 'Prep credit balance',
+          title: 'Prep credits',
           trailing: StatusChip('${controller.pulseCredits} credits'),
           child: Text(
             controller.storeReadback ??
-                'Use prep credits to save verified state updates.',
+                'Credits are used only when saving a verified batch state.',
             key: const Key('pulse-store-readback'),
           ),
         ),
@@ -40,7 +42,7 @@ class PulseStoreScreen extends StatelessWidget {
                 crossAxisCount: columns,
                 mainAxisSpacing: 10,
                 crossAxisSpacing: 10,
-                childAspectRatio: columns == 1 ? 2.9 : 1.25,
+                childAspectRatio: columns == 1 ? 3.4 : 1.55,
               ),
               itemBuilder: (context, index) {
                 final product = pulseStoreCatalog[index];
@@ -54,6 +56,35 @@ class PulseStoreScreen extends StatelessWidget {
               },
             );
           },
+        ),
+        InfoCard(
+          title: 'Policy documents',
+          child: Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            children: [
+              OutlinedButton.icon(
+                key: const Key('store-user-agreement-entry'),
+                onPressed: () => Navigator.pushNamed(
+                  context,
+                  ProtocolScreen.routeName,
+                  arguments: 'User Agreement',
+                ),
+                icon: const Icon(Icons.description_outlined),
+                label: const Text('User Agreement'),
+              ),
+              OutlinedButton.icon(
+                key: const Key('store-privacy-policy-entry'),
+                onPressed: () => Navigator.pushNamed(
+                  context,
+                  ProtocolScreen.routeName,
+                  arguments: 'Privacy Policy',
+                ),
+                icon: const Icon(Icons.privacy_tip_outlined),
+                label: const Text('Privacy Policy'),
+              ),
+            ],
+          ),
         ),
       ],
     );
@@ -122,8 +153,6 @@ class _PulseProductCard extends StatelessWidget {
                   mainAxisAlignment: MainAxisAlignment.center,
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(product.title, maxLines: 1),
-                    const SizedBox(height: 4),
                     Text(
                       '${product.amount} credits',
                       style: Theme.of(context).textTheme.titleMedium,

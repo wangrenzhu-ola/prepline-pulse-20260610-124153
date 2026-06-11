@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../config/app_brand.dart';
 import '../data/prep_seed_data.dart';
 import '../state/prep_board_controller.dart';
 import '../widgets/prep_widgets.dart';
@@ -56,7 +57,7 @@ class _AboutScreenState extends State<AboutScreen> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                'PrepLine Pulse export covers $activeBatchCount active batches '
+                '${AppBrand.name} export covers $activeBatchCount active batches '
                 'with $blockedBatchCount blocked item in exception review.',
               ),
               const SizedBox(height: 10),

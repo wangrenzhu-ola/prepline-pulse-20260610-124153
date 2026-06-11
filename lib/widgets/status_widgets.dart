@@ -81,3 +81,74 @@ class ConfirmationBanner extends StatelessWidget {
     );
   }
 }
+
+class PrepCostNotice extends StatelessWidget {
+  const PrepCostNotice({
+    required this.cost,
+    required this.balance,
+    super.key,
+  });
+
+  final int cost;
+  final int balance;
+
+  @override
+  Widget build(BuildContext context) {
+    final hasEnoughCredits = balance >= cost;
+    final balanceAfter = balance - cost;
+    final color = hasEnoughCredits ? PrepTheme.warning : PrepTheme.error;
+    final title = hasEnoughCredits
+        ? 'Spend $cost credits before saving'
+        : 'Need $cost credits to save';
+    final detail = hasEnoughCredits
+        ? 'Balance after save: $balanceAfter credits.'
+        : 'Current balance: $balance credits. Add credits in Store first.';
+
+    return Semantics(
+      liveRegion: true,
+      label: '$title. $detail',
+      child: Container(
+        width: double.infinity,
+        padding: const EdgeInsets.all(12),
+        decoration: BoxDecoration(
+          color: color.withOpacity(.15),
+          borderRadius: BorderRadius.circular(8),
+          border: Border.all(color: color.withOpacity(.46)),
+        ),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Icon(
+              hasEnoughCredits
+                  ? Icons.local_activity_outlined
+                  : Icons.error_outline,
+              color: color,
+            ),
+            const SizedBox(width: 10),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    title,
+                    style: TextStyle(
+                      color: color,
+                      fontWeight: FontWeight.w900,
+                    ),
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    detail,
+                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                          fontWeight: FontWeight.w700,
+                        ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}

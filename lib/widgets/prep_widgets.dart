@@ -2,11 +2,10 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 
-import '../data/prep_seed_data.dart';
+import '../config/app_brand.dart';
 import '../models/prep_models.dart';
 import '../screens/about_screen.dart';
 import '../screens/exception_queue_screen.dart';
-import '../screens/settings_screen.dart';
 import '../screens/station_timeline_screen.dart';
 import '../state/prep_board_controller.dart';
 import '../theme/prep_theme.dart';
@@ -27,16 +26,8 @@ class PrepScaffold extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('PrepLine Pulse'),
+        title: const Text(AppBrand.name),
         backgroundColor: PrepTheme.background,
-        actions: [
-          IconButton(
-            tooltip: 'Settings',
-            onPressed: () =>
-                Navigator.pushNamed(context, SettingsScreen.routeName),
-            icon: const Icon(Icons.tune),
-          ),
-        ],
       ),
       body: DecoratedBox(
         decoration: const BoxDecoration(
@@ -81,13 +72,11 @@ class ContractMarker extends StatelessWidget {
 }
 
 class ContractHero extends StatelessWidget {
-  const ContractHero({required this.contract, this.assetPath, super.key});
+  const ContractHero({required this.contract, super.key});
   final PageContract contract;
-  final String? assetPath;
 
   @override
   Widget build(BuildContext context) {
-    final imageAsset = assetPath ?? _defaultAssetFor(contract.pageId);
     return Container(
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(8),
@@ -102,7 +91,25 @@ class ContractHero extends StatelessWidget {
           SizedBox(
             height: MediaQuery.sizeOf(context).height * .34,
             width: double.infinity,
-            child: Image.asset(imageAsset, fit: BoxFit.cover),
+            child: DecoratedBox(
+              decoration: const BoxDecoration(
+                gradient: RadialGradient(
+                  center: Alignment.topRight,
+                  radius: 1.2,
+                  colors: [
+                    Color(0xFF38221E),
+                    Color(0xFF101014),
+                  ],
+                ),
+              ),
+              child: Center(
+                child: Icon(
+                  Icons.image_not_supported_outlined,
+                  size: 42,
+                  color: PrepTheme.gold.withOpacity(.70),
+                ),
+              ),
+            ),
           ),
           Container(
             width: double.infinity,
@@ -137,18 +144,6 @@ class ContractHero extends StatelessWidget {
         ],
       ),
     );
-  }
-
-  String _defaultAssetFor(String pageId) {
-    switch (pageId) {
-      case 'batch-detail':
-      case 'batch-detail_detail':
-      case 'state-entry':
-      case 'state-entry_detail':
-        return batchAsset;
-      default:
-        return heroAsset;
-    }
   }
 }
 
@@ -269,10 +264,10 @@ class MediaRecordPanel extends StatelessWidget {
                 ),
                 OutlinedButton.icon(
                   onPressed: item.storedInDocuments
-                      ? () => controller.saveMediaToAlbum(item.id)
+                      ? () => _exportToPhotos(context, controller, item)
                       : null,
                   icon: const Icon(Icons.photo_library_outlined),
-                  label: const Text('Save album'),
+                  label: const Text('Export proof'),
                 ),
                 OutlinedButton.icon(
                   onPressed: () => controller.deleteMedia(item.id),
@@ -285,6 +280,29 @@ class MediaRecordPanel extends StatelessWidget {
         ],
       ),
     );
+  }
+
+  Future<void> _exportToPhotos(
+    BuildContext context,
+    PrepBoardController controller,
+    MediaRecord media,
+  ) async {
+    final exported = await controller.exportProofCardToAlbum(media.id);
+    if (!context.mounted) {
+      return;
+    }
+    final message = controller.mediaReadback ??
+        (exported
+            ? 'Exported proof card to Photos album: ${AppBrand.photosAlbumName}.'
+            : 'Export failed.');
+    ScaffoldMessenger.of(context)
+      ..hideCurrentSnackBar()
+      ..showSnackBar(
+        SnackBar(
+          content: Text(message),
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
   }
 }
 
@@ -321,7 +339,10 @@ class _MediaTile extends StatelessWidget {
               },
             )
           else
-            Image.asset(item.assetPath, fit: BoxFit.cover),
+            const ColoredBox(
+              color: PrepTheme.elevated,
+              child: Icon(Icons.image_not_supported_outlined),
+            ),
           Align(
             alignment: Alignment.bottomLeft,
             child: Container(

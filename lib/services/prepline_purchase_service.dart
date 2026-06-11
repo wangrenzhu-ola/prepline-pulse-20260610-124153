@@ -11,12 +11,23 @@ import '../models/pulse_store_models.dart';
 class PulseWalletLedger {
   static const initialBalance = 100;
   static const stateSaveCost = 10;
-  static const _balanceKey = 'prepLinePulseCreditBalance';
-  static const _deliveryKey = 'prepLinePulseDeliveredPurchases';
+  static const _balanceKey = 'teltaCreditBalance';
+  static const _deliveryKey = 'teltaDeliveredPurchases';
+  static const _legacyBalanceKey = 'prepLinePulseCreditBalance';
+  static const _legacyDeliveryKey = 'prepLinePulseDeliveredPurchases';
 
   Future<int> readBalance() async {
     final prefs = await SharedPreferences.getInstance();
-    return prefs.getInt(_balanceKey) ?? initialBalance;
+    final balance = prefs.getInt(_balanceKey);
+    if (balance != null) {
+      return balance;
+    }
+    final legacyBalance = prefs.getInt(_legacyBalanceKey);
+    if (legacyBalance != null) {
+      await prefs.setInt(_balanceKey, legacyBalance);
+      return legacyBalance;
+    }
+    return initialBalance;
   }
 
   Future<int> writeBalance(int balance) async {
@@ -32,8 +43,9 @@ class PulseWalletLedger {
 
   Future<bool> delivered(String deliveryKey) async {
     final prefs = await SharedPreferences.getInstance();
-    return (prefs.getStringList(_deliveryKey) ?? const [])
-        .contains(deliveryKey);
+    final deliveredKeys = _deliveredKeys(prefs);
+    await prefs.setStringList(_deliveryKey, deliveredKeys);
+    return deliveredKeys.contains(deliveryKey);
   }
 
   Future<int> addPurchaseOnce({
@@ -41,15 +53,25 @@ class PulseWalletLedger {
     required int amount,
   }) async {
     final prefs = await SharedPreferences.getInstance();
-    final deliveredKeys = prefs.getStringList(_deliveryKey) ?? <String>[];
+    final deliveredKeys = _deliveredKeys(prefs);
+    await prefs.setStringList(_deliveryKey, deliveredKeys);
     if (deliveredKeys.contains(deliveryKey)) {
-      return prefs.getInt(_balanceKey) ?? initialBalance;
+      return readBalance();
     }
-    final nextBalance = (prefs.getInt(_balanceKey) ?? initialBalance) + amount;
+    final currentBalance = await readBalance();
+    final nextBalance = currentBalance + amount;
     deliveredKeys.add(deliveryKey);
     await prefs.setStringList(_deliveryKey, deliveredKeys);
     await prefs.setInt(_balanceKey, nextBalance);
     return nextBalance;
+  }
+
+  List<String> _deliveredKeys(SharedPreferences prefs) {
+    final keys = <String>{
+      ...?prefs.getStringList(_legacyDeliveryKey),
+      ...?prefs.getStringList(_deliveryKey),
+    };
+    return keys.toList(growable: true);
   }
 }
 
@@ -57,15 +79,21 @@ class PreplinePurchaseService {
   PreplinePurchaseService({
     required this.walletLedger,
     InAppPurchase? purchaseClient,
-  }) : _purchaseClient = purchaseClient ?? InAppPurchase.instance;
+    InAppPurchase Function()? purchaseClientFactory,
+  })  : _purchaseClient = purchaseClient,
+        _purchaseClientFactory =
+            purchaseClientFactory ?? (() => InAppPurchase.instance);
 
   final PulseWalletLedger walletLedger;
-  final InAppPurchase _purchaseClient;
+  InAppPurchase? _purchaseClient;
+  final InAppPurchase Function() _purchaseClientFactory;
   final Map<String, ProductDetails> _productDetailsById = {};
   final Map<String, Completer<PulsePurchaseResult>> _inFlightByProduct = {};
   StreamSubscription<List<PurchaseDetails>>? _purchaseSubscription;
   bool _availabilityChecked = false;
   bool _storeAvailable = false;
+
+  InAppPurchase get _client => _purchaseClient ??= _purchaseClientFactory();
 
   bool get hasActivePurchase => _inFlightByProduct.isNotEmpty;
 
@@ -89,15 +117,15 @@ class PreplinePurchaseService {
     }
     final productDetails = await _detailsFor(product);
     if (productDetails == null) {
-      return PulsePurchaseResult(
+      return const PulsePurchaseResult(
         state: PulsePurchaseState.failed,
-        message: 'Product ${product.id} is not available yet.',
+        message: 'This credit pack is not available yet.',
       );
     }
     final completer = Completer<PulsePurchaseResult>();
     _inFlightByProduct[product.id] = completer;
     try {
-      final started = await _purchaseClient.buyConsumable(
+      final started = await _client.buyConsumable(
         purchaseParam: PurchaseParam(productDetails: productDetails),
         autoConsume: true,
       );
@@ -134,9 +162,9 @@ class PreplinePurchaseService {
         );
       }
       if (error is PlatformException) {
-        return PulsePurchaseResult(
+        return const PulsePurchaseResult(
           state: PulsePurchaseState.failed,
-          message: 'Purchase failed: ${error.code}.',
+          message: 'Purchase failed. Please try again.',
         );
       }
       return const PulsePurchaseResult(
@@ -156,7 +184,7 @@ class PreplinePurchaseService {
     }
     _availabilityChecked = true;
     try {
-      _storeAvailable = await _purchaseClient
+      _storeAvailable = await _client
           .isAvailable()
           .timeout(const Duration(seconds: 120), onTimeout: () => false);
     } catch (_) {
@@ -165,7 +193,7 @@ class PreplinePurchaseService {
   }
 
   Future<void> _ensurePurchaseListener() async {
-    _purchaseSubscription ??= _purchaseClient.purchaseStream.listen(
+    _purchaseSubscription ??= _client.purchaseStream.listen(
       _handlePurchaseEvents,
       onError: (_) {
         for (final entry in _inFlightByProduct.entries.toList()) {
@@ -189,7 +217,7 @@ class PreplinePurchaseService {
     ];
     for (var attempt = 0; attempt < delays.length; attempt += 1) {
       try {
-        final response = await _purchaseClient
+        final response = await _client
             .queryProductDetails(pulseStoreProductIds)
             .timeout(const Duration(seconds: 180));
         for (final details in response.productDetails) {
@@ -211,8 +239,8 @@ class PreplinePurchaseService {
       return cached;
     }
     try {
-      final response = await _purchaseClient.queryProductDetails(
-          {product.id}).timeout(const Duration(seconds: 60));
+      final response = await _client.queryProductDetails({product.id}).timeout(
+          const Duration(seconds: 60));
       if (response.productDetails.isEmpty) {
         return null;
       }
@@ -302,7 +330,7 @@ class PreplinePurchaseService {
 
   Future<void> _finishPlatformTransaction(PurchaseDetails purchase) async {
     if (purchase.pendingCompletePurchase) {
-      await _purchaseClient.completePurchase(purchase);
+      await _client.completePurchase(purchase);
     }
   }
 

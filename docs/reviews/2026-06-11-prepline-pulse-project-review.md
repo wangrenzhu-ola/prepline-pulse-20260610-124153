@@ -1,4 +1,4 @@
-# PrepLine Pulse Project Review Findings
+# Telta Project Review Findings
 
 Date: 2026-06-11
 
@@ -7,7 +7,7 @@ media loading/display, UI/UX completeness, and page background treatment.
 
 ## Summary
 
-PrepLine Pulse has a broad set of Flutter screens and several useful interaction
+Telta has a broad set of Flutter screens and several useful interaction
 prototypes, but it is not yet ready to treat as a complete product flow. The
 largest risk is not an isolated UI defect; it is that the app currently has
 multiple state sources and several pages read static or page-local data. As a
@@ -73,6 +73,119 @@ This is an explicit runtime adaptation from the archived
 `autobuya-ios-compliance` original text: the original skill describes an ATT
 implementation before `runApp`, but the observed simulator crash path required
 rendering Flutter first and requesting ATT through the scene-owned native channel.
+
+### Documentation Change Round 3
+
+The third documentation update records the post-screenshot simplification pass.
+The provided simulator screenshot paths were no longer readable from their
+temporary `/var/folders/.../T/` locations, so the analysis used current source
+inspection plus a fresh iOS simulator screenshot.
+
+Root causes found:
+
+- The Store page did not own a settings action; the shared `PrepScaffold`
+  injected a settings icon into every page using that scaffold.
+- The app still exposed too many peer-level destinations through navigation,
+  drawer, and More surfaces, so auxiliary pages competed with the core workflow.
+- Built-in `assets/images` PNGs were displayed as large hero/media images,
+  which made it unclear whether the user was seeing uploaded album media or
+  placeholder art.
+- Save-to-album was presented like a primary workflow, and the first fix still
+  only exported the original uploaded photo back to system Photos. That was not
+  a meaningful product action because the user had just imported that photo.
+
+Fixes recorded in this round:
+
+- Primary navigation is now Board, Batch, Photos, and Store.
+- The Store page no longer shows a settings icon.
+- Board, Batch, and Photos each use the same `PrimaryProofHero`; it shows an
+  upload empty state until the user uploads an album photo.
+- Uploading a proof photo promotes that user image to all three large-image
+  pages.
+- Built-in `assets/images` files are no longer rendered as UI photos.
+- The large proof image now exports a generated proof card rather than the
+  imported original photo, while state saving owns the primary "save with photo"
+  workflow.
+
+### Documentation Change Round 6
+
+The sixth update records the interaction self-review prompted by the user's
+concern that the photo action felt small and unclear.
+
+Issues found:
+
+- `Save to Photos` sounded like the core save action even though it only wrote
+  the uploaded original photo back to the system Photos album.
+- The Board and Batch save controls were visually smaller than the image export
+  control, so the app's actual record-saving workflow felt secondary.
+- The Photos tab read like a generic timeline instead of a saved proof-photo
+  surface.
+- State Entry split one save workflow across many small cards.
+- Album export pre-requested add-only permission, while named album export uses
+  the Photos read/write path.
+
+Fixes recorded in this round:
+
+- Replaced original-photo export with generated proof-card export. The generated
+  card includes the proof photo, batch, state, station, owner, export time, and
+  note before writing to the `Telta` Photos album.
+- Renamed the image action to `Export proof` so it no longer implies a business
+  record save or an original-photo duplicate.
+- Promoted `Save ready with photo` / `Save update with photo` as the primary app
+  record action.
+- Added Snackbar feedback for state saves and image export.
+- Simplified State Entry into one save form plus a latest-record readback.
+- Reworked Photos to show proof records that actually have linked images.
+- Aligned named album export permission with Photos read/write access.
+
+### Documentation Change Round 4
+
+The fourth documentation update records the `setup-iap` and
+`autobuya-ios-compliance` recheck after the user clarified that products and the
+two policy documents must not be removed.
+
+Fixes recorded in this round:
+
+- Store again renders the full 27-product catalog (`473900` through `473926`).
+- Store keeps no settings icon, but directly exposes User Agreement and Privacy
+  Policy links.
+- Settings retains its original User Agreement and Privacy Policy entries.
+- IAP tracker, compliance tracker, test matrix, feature coverage, layout audit,
+  and event log were updated to reflect the restored catalog and policy links.
+
+### Documentation Change Round 5
+
+The fifth documentation update records the Board self-review prompted by the
+latest simulator screenshot.
+
+Issues found:
+
+- `Save ready` changed in-memory batch/station state and appended a log, but did
+  not explain what was saved or where the record could be found.
+- Saved logs did not carry the current uploaded proof image path, so the user
+  could not tell whether a save included the large photo.
+- Mutable batch/log/exception/media state was not written to local app storage,
+  so the flow still felt like a demo after restart.
+- `ServiceClockScreen` had a hardcoded initial readback string and its refresh
+  action updated internal text without rebuilding the UI.
+- The Board station strip could overflow on the simulator viewport shown by the
+  user.
+
+Fixes recorded in this round:
+
+- State saves now write local app records through `PreplineStateStore`.
+- Save records include the uploaded proof photo relative path when a user photo
+  exists.
+- Saved proof image files are retained when the current proof photo is replaced
+  or removed, so historical records keep their thumbnails.
+- Uploaded proof media records are restored with the saved session.
+- Board and State Entry now state what a save records.
+- Batch Detail and Photos/Timeline read back saved proof thumbnails from the
+  same logs.
+- Service Clock readback is calculated from current controller data and refresh
+  calls `setState`.
+- The Board station strip height and tile layout were adjusted to remove the
+  bottom overflow.
 
 ## High Priority Issues
 
@@ -194,7 +307,7 @@ requires `sdk: ^3.11.5`. Both `flutter analyze` and `flutter test` stop at
 dependency resolution:
 
 ```text
-Because app_20260610_124153 requires SDK version ^3.11.5, version solving failed.
+Because telta requires SDK version ^3.11.5, version solving failed.
 ```
 
 Before accepting the app as complete, rerun analyze, tests, and an iOS simulator
@@ -213,3 +326,21 @@ build with a Flutter SDK that includes Dart 3.11.5 or newer.
 6. Normalize theme usage and check contrast on all light/dark mixed surfaces.
 7. Re-run `flutter analyze`, `flutter test`, and a simulator build under a
    compatible Flutter/Dart SDK.
+
+## Follow-up Fix: Pre-save Credit Cost Disclosure
+
+Screenshot review found that the app only made the 10-credit cost obvious after
+the user had already saved and spent credits. Board showed the remaining balance
+as a chip, and State Entry used a low-emphasis text row, but neither gave the
+primary save action a clear pre-spend disclosure.
+
+Changes made:
+
+- Added a shared `PrepCostNotice` component with warning/error styling,
+  semantics, the fixed cost, and the projected balance after save.
+- Placed that notice directly before the credit-spending save button on Board,
+  Batch Detail, and State Entry.
+- Disabled those save buttons when the current balance is below the fixed
+  10-credit cost.
+- Updated the interaction contract, IAP tracker, feature matrix, and tests so
+  future credit-spending actions cannot rely on post-save confirmation alone.

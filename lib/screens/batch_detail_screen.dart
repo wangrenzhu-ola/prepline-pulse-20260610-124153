@@ -1,13 +1,14 @@
 import 'package:flutter/material.dart';
 
-import '../data/prep_seed_data.dart';
+import '../models/prep_models.dart';
+import '../services/prepline_purchase_service.dart';
 import '../state/prep_board_controller.dart';
 import '../theme/prep_theme.dart';
+import '../widgets/batch_setup_fields.dart';
 import '../widgets/media_widgets.dart';
 import '../widgets/operational_page.dart';
 import '../widgets/prep_widgets.dart';
 import '../widgets/status_widgets.dart';
-import 'state_entry_screen.dart' show StateEntryScreen;
 
 typedef BatchDetailActionContract = PrepBoardController;
 
@@ -25,14 +26,16 @@ class BatchDetailScreen extends StatelessWidget {
         final batch = controller.selectedBatch;
         final history = controller.historyForSelectedBatch();
         final exception = controller.openExceptionForSelectedBatch();
-        final media = controller.mediaFor('batch-detail');
+        final canSpend =
+            controller.pulseCredits >= PulseWalletLedger.stateSaveCost;
 
         return OperationalPage(
           pageId: 'batch-detail',
-          title: pageContracts[1].title,
+          title: 'Batch Detail',
+          mediaTarget: 'batch-detail',
           children: [
             InfoCard(
-              title: 'Batch identity',
+              title: 'Selected batch',
               trailing: PrepStatusPill(
                 batch.state,
                 color: batch.blocked ? PrepTheme.error : PrepTheme.success,
@@ -47,123 +50,195 @@ class BatchDetailScreen extends StatelessWidget {
                   ),
                   const SizedBox(height: 8),
                   BatchSummary(batch: batch),
-                  const SizedBox(height: 10),
-                  Text(
-                    'Service window: ${batch.serviceWindow}; ${batch.minutesToWindow} minutes out.',
+                  const SizedBox(height: 12),
+                  BatchSetupFields(
+                    controller: controller,
+                    keyPrefix: 'batch-detail',
                   ),
                 ],
               ),
             ),
             InfoCard(
-              title: 'Station assignment',
+              title: 'Save this batch',
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    'Assigned station: ${batch.station}',
+                    batch.note,
                     key: const Key('batch-detail-station-readback'),
                   ),
-                  Text('Owner ${batch.owner}; backup ${batch.backup}.'),
-                  Text('Quantity: ${batch.quantity} portions.'),
-                  const SizedBox(height: 8),
-                  Text('Station note: ${batch.note}'),
-                ],
-              ),
-            ),
-            const MediaRecordPanel(attachedTo: 'batch-detail', hero: true),
-            if (media.isNotEmpty) PrepMediaPreview(record: media.first),
-            const SizedBox(height: 12),
-            InfoCard(
-              title: 'State history preview',
-              trailing: PrepStatusPill('${media.length} media'),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  if (history.isEmpty)
-                    const Text('No saved state history for this batch yet.'),
-                  for (final log in history.take(3))
-                    Padding(
-                      padding: const EdgeInsets.only(bottom: 8),
-                      child: Text(
-                        '${log.savedAt} - ${log.station} - ${log.state} by ${log.owner}: ${log.note}',
-                        key: Key(
-                          'batch-detail-history-${log.savedAt}-${log.state}',
-                        ),
-                      ),
+                  const SizedBox(height: 12),
+                  PrepCostNotice(
+                    key: const Key('batch-detail-save-cost-notice'),
+                    cost: PulseWalletLedger.stateSaveCost,
+                    balance: controller.pulseCredits,
+                  ),
+                  const SizedBox(height: 12),
+                  SizedBox(
+                    width: double.infinity,
+                    child: FilledButton.icon(
+                      key: const Key('batch-detail-save-state-button'),
+                      onPressed: canSpend
+                          ? () => _saveReady(context, controller, batch.id)
+                          : null,
+                      icon: const Icon(Icons.check_circle_outline),
+                      label: Text(controller.primarySaveActionLabel),
                     ),
-                ],
-              ),
-            ),
-            InfoCard(
-              title: 'Edit and resolve controls',
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Wrap(
-                    spacing: 8,
-                    runSpacing: 8,
-                    children: [
-                      FilledButton.icon(
-                        key: const Key('batch-detail-save-state-button'),
-                        onPressed: () {
-                          controller.selectBatch(batch.id);
-                          controller.saveState();
-                        },
-                        icon: const Icon(Icons.save_outlined),
-                        label: const Text('Save State'),
-                      ),
-                      OutlinedButton.icon(
-                        key: const Key('batch-detail-edit-state-button'),
-                        onPressed: () {
-                          controller.selectBatch(batch.id);
-                          Navigator.pushNamed(
-                            context,
-                            StateEntryScreen.routeName,
-                          );
-                        },
-                        icon: const Icon(Icons.edit_note),
-                        label: const Text('Edit State'),
-                      ),
-                      OutlinedButton.icon(
-                        key: const Key('batch-detail-resolve-blocked-button'),
-                        onPressed: exception == null
-                            ? null
-                            : () {
-                                controller.selectBatch(batch.id);
-                                controller.resolveBlocked(batch.id);
-                              },
-                        icon: const Icon(Icons.task_alt),
-                        label: const Text('Resolve Blocked'),
-                      ),
-                    ],
+                  ),
+                  const SizedBox(height: 8),
+                  SizedBox(
+                    width: double.infinity,
+                    child: OutlinedButton.icon(
+                      key: const Key('batch-detail-mark-blocked-button'),
+                      onPressed: canSpend && !batch.blocked
+                          ? () => _saveBlocked(context, controller, batch.id)
+                          : null,
+                      icon: const Icon(Icons.warning_amber_outlined),
+                      label: const Text('Mark blocked'),
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  SizedBox(
+                    width: double.infinity,
+                    child: OutlinedButton.icon(
+                      key: const Key('batch-detail-resolve-blocked-button'),
+                      onPressed: exception == null
+                          ? null
+                          : () => _resolveBlock(
+                                context,
+                                controller,
+                                batch.id,
+                              ),
+                      icon: const Icon(Icons.task_alt),
+                      label: const Text('Clear block'),
+                    ),
                   ),
                   const SizedBox(height: 10),
-                  if (controller.lastConfirmation != null)
+                  Text(
+                    controller.saveScopeReadback,
+                    style: Theme.of(context).textTheme.bodySmall,
+                  ),
+                  if (controller.lastConfirmation != null) ...[
+                    const SizedBox(height: 10),
                     Text(
                       controller.lastConfirmation!,
                       key: const Key('batch-detail-save-readback'),
                       style: const TextStyle(color: PrepTheme.success),
                     ),
-                  const SizedBox(height: 8),
-                  const Text('Save State uses 10 prep credits.'),
-                  if (controller.lastResolvedException != null)
+                  ],
+                  if (controller.lastResolvedException != null) ...[
+                    const SizedBox(height: 8),
                     Text(
                       controller.lastResolvedException!,
                       key: const Key('batch-detail-resolution-readback'),
                       style: const TextStyle(color: PrepTheme.success),
                     ),
-                  if (exception != null)
-                    Text(
-                      'Open blocker: ${exception.reason} (${exception.owner}).',
-                    ),
-                  if (exception == null)
-                    const Text('No open blocker for the selected batch.'),
+                  ],
+                ],
+              ),
+            ),
+            InfoCard(
+              title: 'Recent history',
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  if (history.isEmpty) const Text('No saved updates yet.'),
+                  for (final log in history.take(2)) _HistoryRecord(log: log),
                 ],
               ),
             ),
           ],
         );
       },
+    );
+  }
+
+  void _saveReady(
+    BuildContext context,
+    PrepBoardController controller,
+    String batchId,
+  ) {
+    controller.selectBatch(batchId);
+    controller.saveState(nextState: 'Ready');
+    ScaffoldMessenger.of(context)
+      ..hideCurrentSnackBar()
+      ..showSnackBar(
+        SnackBar(
+          content: Text(controller.visibleConfirmation),
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+  }
+
+  void _saveBlocked(
+    BuildContext context,
+    PrepBoardController controller,
+    String batchId,
+  ) {
+    controller.selectBatch(batchId);
+    controller.saveState(nextState: 'Blocked');
+    ScaffoldMessenger.of(context)
+      ..hideCurrentSnackBar()
+      ..showSnackBar(
+        SnackBar(
+          content: Text(controller.visibleConfirmation),
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+  }
+
+  void _resolveBlock(
+    BuildContext context,
+    PrepBoardController controller,
+    String batchId,
+  ) {
+    controller.selectBatch(batchId);
+    controller.resolveBlocked(batchId);
+    ScaffoldMessenger.of(context)
+      ..hideCurrentSnackBar()
+      ..showSnackBar(
+        SnackBar(
+          content: Text(controller.lastResolvedException ?? 'Block cleared.'),
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+  }
+}
+
+class _HistoryRecord extends StatelessWidget {
+  const _HistoryRecord({required this.log});
+
+  final PrepLog log;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 10),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          SavedProofThumbnail(log: log, compact: true),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  '${log.savedAt} ${log.station}: ${log.state}',
+                  key: Key('batch-detail-history-${log.savedAt}-${log.state}'),
+                  style: Theme.of(context).textTheme.titleSmall,
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  log.note,
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
     );
   }
 }

@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 
 import 'prep_theme.dart';
 
-class PrepLineTheme {
-  const PrepLineTheme._();
+class TeltaTheme {
+  const TeltaTheme._();
 
   static void ensureLinked() {}
 

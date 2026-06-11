@@ -5,7 +5,16 @@ class ProtocolScreen extends StatefulWidget {
   const ProtocolScreen({super.key});
 
   static const routeName = '/protocol';
-  static const placeholderUrl = 'https://developer.apple.com/support/terms/';
+  static const userAgreementUrl =
+      'https://qavix.teltaj.com/ServiceAgreement.html';
+  static const privacyPolicyUrl =
+      'https://qavix.teltaj.com/privacy-summary.html';
+
+  static String urlForTitle(String title) {
+    return title.toLowerCase().contains('privacy')
+        ? privacyPolicyUrl
+        : userAgreementUrl;
+  }
 
   @override
   State<ProtocolScreen> createState() => _ProtocolScreenState();
@@ -15,6 +24,8 @@ class _ProtocolScreenState extends State<ProtocolScreen> {
   late final WebViewController _webViewController;
   var _retryCount = 0;
   var _loading = true;
+  var _requestLoaded = false;
+  var _currentUrl = ProtocolScreen.userAgreementUrl;
 
   @override
   void initState() {
@@ -26,14 +37,24 @@ class _ProtocolScreenState extends State<ProtocolScreen> {
           onPageFinished: (_) => setState(() => _loading = false),
           onWebResourceError: (_) => _retryLoad(),
         ),
-      )
-      ..loadRequest(Uri.parse(ProtocolScreen.placeholderUrl));
+      );
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (_requestLoaded) {
+      return;
+    }
+    final title = _documentTitle(context);
+    _currentUrl = ProtocolScreen.urlForTitle(title);
+    _requestLoaded = true;
+    _webViewController.loadRequest(Uri.parse(_currentUrl));
   }
 
   @override
   Widget build(BuildContext context) {
-    final title = ModalRoute.of(context)?.settings.arguments as String? ??
-        'Policy document';
+    final title = _documentTitle(context);
     return Scaffold(
       appBar: AppBar(title: Text(title)),
       body: SafeArea(
@@ -60,7 +81,12 @@ class _ProtocolScreenState extends State<ProtocolScreen> {
       if (!mounted) {
         return;
       }
-      _webViewController.loadRequest(Uri.parse(ProtocolScreen.placeholderUrl));
+      _webViewController.loadRequest(Uri.parse(_currentUrl));
     });
+  }
+
+  String _documentTitle(BuildContext context) {
+    return ModalRoute.of(context)?.settings.arguments as String? ??
+        'Policy document';
   }
 }

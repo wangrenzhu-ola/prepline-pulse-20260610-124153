@@ -32,59 +32,100 @@ class PulsePurchaseResult {
 
 const pulseStoreCatalog = <PulseStoreProduct>[
   PulseStoreProduct(
-      id: '473900', amount: 110, referencePrice: '\$0.99', promotion: false),
+      id: '850221000', amount: 100, referencePrice: '\$0.99', promotion: false),
   PulseStoreProduct(
-      id: '473901', amount: 210, referencePrice: '\$1.99', promotion: false),
+      id: '850221001', amount: 398, referencePrice: '\$3.99', promotion: false),
   PulseStoreProduct(
-      id: '473902', amount: 310, referencePrice: '\$2.99', promotion: false),
+      id: '850221002', amount: 500, referencePrice: '\$4.99', promotion: false),
   PulseStoreProduct(
-      id: '473903', amount: 400, referencePrice: '\$3.99', promotion: false),
+      id: '850221003', amount: 600, referencePrice: '\$5.99', promotion: false),
   PulseStoreProduct(
-      id: '473904', amount: 520, referencePrice: '\$4.99', promotion: false),
+      id: '850221004', amount: 900, referencePrice: '\$8.99', promotion: false),
   PulseStoreProduct(
-      id: '473905', amount: 630, referencePrice: '\$5.99', promotion: false),
+      id: '850221005',
+      amount: 1160,
+      referencePrice: '\$9.99',
+      promotion: false),
   PulseStoreProduct(
-      id: '473906', amount: 740, referencePrice: '\$6.99', promotion: false),
+      id: '850221006',
+      amount: 1200,
+      referencePrice: '\$11.99',
+      promotion: false),
   PulseStoreProduct(
-      id: '473907', amount: 1000, referencePrice: '\$8.99', promotion: false),
+      id: '850221007',
+      amount: 1560,
+      referencePrice: '\$12.99',
+      promotion: false),
   PulseStoreProduct(
-      id: '473908', amount: 1200, referencePrice: '\$9.99', promotion: false),
+      id: '850221008',
+      amount: 1980,
+      referencePrice: '\$15.99',
+      promotion: false),
   PulseStoreProduct(
-      id: '473909', amount: 1600, referencePrice: '\$12.99', promotion: false),
+      id: '850221009',
+      amount: 2500,
+      referencePrice: '\$19.99',
+      promotion: false),
   PulseStoreProduct(
-      id: '473910', amount: 2000, referencePrice: '\$15.99', promotion: false),
+      id: '850221010',
+      amount: 3160,
+      referencePrice: '\$24.99',
+      promotion: false),
   PulseStoreProduct(
-      id: '473911', amount: 2600, referencePrice: '\$19.99', promotion: false),
+      id: '850221011',
+      amount: 3900,
+      referencePrice: '\$29.99',
+      promotion: false),
   PulseStoreProduct(
-      id: '473912', amount: 3300, referencePrice: '\$24.99', promotion: false),
+      id: '850221012',
+      amount: 5600,
+      referencePrice: '\$39.99',
+      promotion: false),
   PulseStoreProduct(
-      id: '473913', amount: 4200, referencePrice: '\$29.99', promotion: false),
+      id: '850221013',
+      amount: 7500,
+      referencePrice: '\$49.99',
+      promotion: false),
   PulseStoreProduct(
-      id: '473914', amount: 4900, referencePrice: '\$34.99', promotion: false),
+      id: '850221014',
+      amount: 13600,
+      referencePrice: '\$79.99',
+      promotion: false),
   PulseStoreProduct(
-      id: '473915', amount: 6000, referencePrice: '\$39.99', promotion: false),
+      id: '850221015',
+      amount: 18800,
+      referencePrice: '\$99.99',
+      promotion: false),
   PulseStoreProduct(
-      id: '473916', amount: 8000, referencePrice: '\$49.99', promotion: false),
+      id: '850221016', amount: 580, referencePrice: '\$1.99', promotion: true),
   PulseStoreProduct(
-      id: '473917', amount: 14000, referencePrice: '\$79.99', promotion: false),
+      id: '850221017', amount: 750, referencePrice: '\$2.99', promotion: true),
   PulseStoreProduct(
-      id: '473918', amount: 14998, referencePrice: '\$99.99', promotion: false),
+      id: '850221018', amount: 1080, referencePrice: '\$4.99', promotion: true),
   PulseStoreProduct(
-      id: '473919', amount: 520, referencePrice: '\$1.99', promotion: true),
+      id: '850221019', amount: 1280, referencePrice: '\$5.99', promotion: true),
   PulseStoreProduct(
-      id: '473920', amount: 800, referencePrice: '\$2.99', promotion: true),
+      id: '850221020', amount: 2100, referencePrice: '\$9.99', promotion: true),
   PulseStoreProduct(
-      id: '473921', amount: 1300, referencePrice: '\$4.99', promotion: true),
+      id: '850221021',
+      amount: 2560,
+      referencePrice: '\$11.99',
+      promotion: true),
   PulseStoreProduct(
-      id: '473922', amount: 1500, referencePrice: '\$5.99', promotion: true),
+      id: '850221022',
+      amount: 2780,
+      referencePrice: '\$12.99',
+      promotion: true),
   PulseStoreProduct(
-      id: '473923', amount: 2700, referencePrice: '\$11.99', promotion: true),
+      id: '850221023',
+      amount: 4360,
+      referencePrice: '\$19.99',
+      promotion: true),
   PulseStoreProduct(
-      id: '473924', amount: 2900, referencePrice: '\$12.99', promotion: true),
-  PulseStoreProduct(
-      id: '473925', amount: 7200, referencePrice: '\$34.99', promotion: true),
-  PulseStoreProduct(
-      id: '473926', amount: 17000, referencePrice: '\$79.99', promotion: true),
+      id: '850221024',
+      amount: 7500,
+      referencePrice: '\$39.99',
+      promotion: true),
 ];
 
 Set<String> get pulseStoreProductIds =>

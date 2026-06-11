@@ -1,5 +1,5 @@
-name: app_20260610_124153
-description: "PrepLine Pulse generated Flutter app."
+name: telta
+description: "Telta generated Flutter app."
 # The following line prevents the package from being accidentally published to
 # pub.dev using `flutter pub publish`. This is preferred for private packages.
 publish_to: 'none' # Remove this line if you wish to publish to pub.dev
@@ -70,6 +70,10 @@ flutter:
     - assets/prep_sample.txt
     - assets/images/prepline_hero.png
     - assets/images/prepline_batch.png
+    - assets/images/kitchen_prep_01.jpg
+    - assets/images/fresh_ingredients_01.jpg
+    - assets/images/finished_dish_01.jpg
+    - assets/images/kitchen_station_01.jpg
 
   # To add assets to your application, add an assets section, like this:
   # assets:

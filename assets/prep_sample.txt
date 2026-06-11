@@ -1,3 +1,3 @@
-PrepLine Pulse sample media manifest.
+Telta sample media manifest.
 page_id: line-board
 This bounded text asset stands in for a station prep photo during native StoryAgent assembly.
