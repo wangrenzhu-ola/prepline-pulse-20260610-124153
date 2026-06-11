@@ -66,6 +66,28 @@ class StationStatus {
       blocked: blocked ?? this.blocked,
     );
   }
+
+  factory StationStatus.fromJson(Map<String, Object?> json) {
+    return StationStatus(
+      station: json['station'] as String,
+      state: json['state'] as String,
+      owner: json['owner'] as String,
+      backup: json['backup'] as String,
+      activeBatchId: json['activeBatchId'] as String,
+      blocked: json['blocked'] as bool,
+    );
+  }
+
+  Map<String, Object?> toJson() {
+    return {
+      'station': station,
+      'state': state,
+      'owner': owner,
+      'backup': backup,
+      'activeBatchId': activeBatchId,
+      'blocked': blocked,
+    };
+  }
 }
 
 class LineBoardSnapshot {
@@ -134,6 +156,38 @@ class PrepBatch {
       blocked: blocked ?? this.blocked,
     );
   }
+
+  factory PrepBatch.fromJson(Map<String, Object?> json) {
+    return PrepBatch(
+      id: json['id'] as String,
+      name: json['name'] as String,
+      station: json['station'] as String,
+      owner: json['owner'] as String,
+      backup: json['backup'] as String,
+      quantity: json['quantity'] as int,
+      state: json['state'] as String,
+      serviceWindow: json['serviceWindow'] as String,
+      minutesToWindow: json['minutesToWindow'] as int,
+      note: json['note'] as String,
+      blocked: json['blocked'] as bool,
+    );
+  }
+
+  Map<String, Object?> toJson() {
+    return {
+      'id': id,
+      'name': name,
+      'station': station,
+      'owner': owner,
+      'backup': backup,
+      'quantity': quantity,
+      'state': state,
+      'serviceWindow': serviceWindow,
+      'minutesToWindow': minutesToWindow,
+      'note': note,
+      'blocked': blocked,
+    };
+  }
 }
 
 class PrepLog {
@@ -145,6 +199,7 @@ class PrepLog {
     required this.owner,
     required this.note,
     required this.savedAt,
+    this.proofImagePath,
   });
 
   final String batchId;
@@ -154,6 +209,35 @@ class PrepLog {
   final String owner;
   final String note;
   final String savedAt;
+  final String? proofImagePath;
+
+  bool get hasProofImage => proofImagePath?.isNotEmpty ?? false;
+
+  factory PrepLog.fromJson(Map<String, Object?> json) {
+    return PrepLog(
+      batchId: json['batchId'] as String,
+      batchName: json['batchName'] as String,
+      station: json['station'] as String,
+      state: json['state'] as String,
+      owner: json['owner'] as String,
+      note: json['note'] as String,
+      savedAt: json['savedAt'] as String,
+      proofImagePath: json['proofImagePath'] as String?,
+    );
+  }
+
+  Map<String, Object?> toJson() {
+    return {
+      'batchId': batchId,
+      'batchName': batchName,
+      'station': station,
+      'state': state,
+      'owner': owner,
+      'note': note,
+      'savedAt': savedAt,
+      'proofImagePath': proofImagePath,
+    };
+  }
 }
 
 class PrepException {
@@ -180,6 +264,26 @@ class PrepException {
       resolved: true,
     );
   }
+
+  factory PrepException.fromJson(Map<String, Object?> json) {
+    return PrepException(
+      id: json['id'] as String,
+      batchId: json['batchId'] as String,
+      reason: json['reason'] as String,
+      owner: json['owner'] as String,
+      resolved: json['resolved'] as bool,
+    );
+  }
+
+  Map<String, Object?> toJson() {
+    return {
+      'id': id,
+      'batchId': batchId,
+      'reason': reason,
+      'owner': owner,
+      'resolved': resolved,
+    };
+  }
 }
 
 class MediaRecord {
@@ -196,4 +300,24 @@ class MediaRecord {
   final String label;
   final String attachedTo;
   final bool storedInDocuments;
+
+  factory MediaRecord.fromJson(Map<String, Object?> json) {
+    return MediaRecord(
+      id: json['id'] as String,
+      assetPath: json['assetPath'] as String,
+      label: json['label'] as String,
+      attachedTo: json['attachedTo'] as String,
+      storedInDocuments: json['storedInDocuments'] as bool? ?? false,
+    );
+  }
+
+  Map<String, Object?> toJson() {
+    return {
+      'id': id,
+      'assetPath': assetPath,
+      'label': label,
+      'attachedTo': attachedTo,
+      'storedInDocuments': storedInDocuments,
+    };
+  }
 }

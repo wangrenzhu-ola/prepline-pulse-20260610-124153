@@ -11,17 +11,20 @@ import '../models/pulse_store_models.dart';
 import '../services/prepline_document_media_store.dart';
 import '../services/prepline_permission_service.dart';
 import '../services/prepline_purchase_service.dart';
+import '../services/prepline_state_store.dart';
 
 class PrepBoardController extends ChangeNotifier {
   PrepBoardController({
     PrepRepository repository = const PrepRepository(),
     PreplineDocumentMediaStore? mediaStore,
     PreplinePermissionService? permissionService,
+    PreplineStateStore? stateStore,
     PulseWalletLedger? walletLedger,
     PreplinePurchaseService? purchaseService,
     ImagePicker? imagePicker,
   })  : _mediaStore = mediaStore ?? PreplineDocumentMediaStore(),
         _permissionService = permissionService ?? PreplinePermissionService(),
+        _stateStore = stateStore ?? PreplineStateStore(),
         _walletLedger = walletLedger ?? PulseWalletLedger(),
         _purchaseService = purchaseService,
         _imagePicker = imagePicker ?? ImagePicker() {
@@ -32,11 +35,13 @@ class PrepBoardController extends ChangeNotifier {
     _exceptions = List<PrepException>.from(seedExceptions);
     _media = [];
     _latestSavedState = _logs.last;
-    _loadPulseCredits();
+    _restoreFuture = _loadSavedSession();
+    _pulseCreditsFuture = _loadPulseCredits();
   }
 
   final PreplineDocumentMediaStore _mediaStore;
   final PreplinePermissionService _permissionService;
+  final PreplineStateStore _stateStore;
   final PulseWalletLedger _walletLedger;
   PreplinePurchaseService? _purchaseService;
   final ImagePicker _imagePicker;
@@ -47,6 +52,9 @@ class PrepBoardController extends ChangeNotifier {
   late final List<PrepException> _exceptions;
   late final List<MediaRecord> _media;
   late PrepLog _latestSavedState;
+  late final Future<void> _restoreFuture;
+  late final Future<void> _pulseCreditsFuture;
+  Future<void>? _pendingPersistence;
 
   String selectedBatchId = 'B-104';
   String visibleConfirmation = 'Ready for first station update.';
@@ -74,6 +82,15 @@ class PrepBoardController extends ChangeNotifier {
   int get blockedBatchCount => _batches.where((batch) => batch.blocked).length;
   int get blockedCount => _exceptions.where((item) => !item.resolved).length;
   bool get storeBusy => activePurchaseProductId != null;
+  Future<void> get ready => Future.wait([_restoreFuture, _pulseCreditsFuture]);
+
+  String get saveScopeReadback {
+    final hasProof = primaryUserMediaFor('line-board') != null;
+    if (hasProof) {
+      return 'Saves batch, station, note, and linked proof photo to local records.';
+    }
+    return 'Saves batch, station, and note to local records. Upload a photo to link proof.';
+  }
 
   PrepBatch get selectedBatch =>
       _batches.firstWhere((batch) => batch.id == selectedBatchId);
@@ -141,12 +158,14 @@ class PrepBoardController extends ChangeNotifier {
       owner: updated.owner,
       note: updated.note,
       savedAt: _clockLabel(),
+      proofImagePath: _currentProofImagePath(),
     );
     _logs.add(_latestSavedState);
     _syncExceptionForSavedState(updated);
     visibleConfirmation =
-        'Saved ${updated.id} as ${updated.state} at ${_latestSavedState.savedAt}; ${PulseWalletLedger.stateSaveCost} credits used.';
+        'Saved ${updated.id} as ${updated.state} at ${_latestSavedState.savedAt}; ${PulseWalletLedger.stateSaveCost} credits used; ${_latestSavedState.hasProofImage ? 'photo linked' : 'no photo linked'}.';
     lastConfirmation = visibleConfirmation;
+    _queueSessionPersistence();
     notifyListeners();
     return true;
   }
@@ -181,8 +200,10 @@ class PrepBoardController extends ChangeNotifier {
       owner: _batches[index].owner,
       note: _batches[index].note,
       savedAt: _clockLabel(),
+      proofImagePath: _currentProofImagePath(),
     );
     _logs.add(_latestSavedState);
+    _queueSessionPersistence();
     notifyListeners();
   }
 
@@ -268,8 +289,9 @@ class PrepBoardController extends ChangeNotifier {
           ),
         );
       }
+      final savedProofPaths = _savedProofPaths();
       for (final oldPath in oldPaths) {
-        if (oldPath != relativePath) {
+        if (oldPath != relativePath && !savedProofPaths.contains(oldPath)) {
           unawaited(_mediaStore.deleteRelativePath(oldPath));
         }
       }
@@ -287,6 +309,7 @@ class PrepBoardController extends ChangeNotifier {
       );
       mediaReadback = 'Photo uploaded.';
     }
+    _queueSessionPersistence();
     notifyListeners();
   }
 
@@ -320,13 +343,17 @@ class PrepBoardController extends ChangeNotifier {
         .where((media) => media.storedInDocuments)
         .map((media) => media.assetPath)
         .toSet();
+    final savedProofPaths = _savedProofPaths();
     for (final relativePath in storedPaths) {
-      unawaited(_mediaStore.deleteRelativePath(relativePath));
+      if (!savedProofPaths.contains(relativePath)) {
+        unawaited(_mediaStore.deleteRelativePath(relativePath));
+      }
     }
     _media.removeWhere((media) =>
         media.id == mediaId ||
         (media.storedInDocuments && storedPaths.contains(media.assetPath)));
     mediaReadback = 'Photo removed.';
+    _queueSessionPersistence();
     notifyListeners();
   }
 
@@ -366,6 +393,65 @@ class PrepBoardController extends ChangeNotifier {
   Future<void> _loadPulseCredits() async {
     pulseCredits = await _walletLedger.readBalance();
     notifyListeners();
+  }
+
+  Future<void> waitForPendingPersistence() async {
+    await _pendingPersistence;
+  }
+
+  Future<void> _loadSavedSession() async {
+    final session = await _stateStore.readSession();
+    if (session == null) {
+      return;
+    }
+    _batches
+      ..clear()
+      ..addAll(session.batches);
+    _stations
+      ..clear()
+      ..addAll(session.stations);
+    _logs
+      ..clear()
+      ..addAll(session.logs);
+    _exceptions
+      ..clear()
+      ..addAll(session.exceptions);
+    _media
+      ..clear()
+      ..addAll(session.media);
+    selectedBatchId = session.selectedBatchId;
+    final restoredLog = session.latestLog;
+    if (restoredLog != null) {
+      _latestSavedState = restoredLog;
+      visibleConfirmation =
+          'Restored ${restoredLog.batchId} ${restoredLog.state} from local records.';
+      lastConfirmation = visibleConfirmation;
+    }
+    notifyListeners();
+  }
+
+  void _queueSessionPersistence() {
+    _pendingPersistence = _stateStore.writeSession(
+      selectedBatchId: selectedBatchId,
+      batches: List<PrepBatch>.from(_batches),
+      stations: List<StationStatus>.from(_stations),
+      logs: List<PrepLog>.from(_logs),
+      exceptions: List<PrepException>.from(_exceptions),
+      media: List<MediaRecord>.from(_media),
+    );
+    unawaited(_pendingPersistence);
+  }
+
+  String? _currentProofImagePath() {
+    return primaryUserMediaFor('line-board')?.assetPath;
+  }
+
+  Set<String> _savedProofPaths() {
+    return _logs
+        .map((log) => log.proofImagePath)
+        .whereType<String>()
+        .where((path) => path.isNotEmpty)
+        .toSet();
   }
 
   @override

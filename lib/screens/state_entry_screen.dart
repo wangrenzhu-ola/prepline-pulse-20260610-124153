@@ -142,15 +142,26 @@ class _StateEntryScreenState extends State<StateEntryScreen> {
         const SizedBox(height: 12),
         _EntryCard(
           title: 'Save cost',
-          child: Row(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Expanded(
-                child: Text(
-                  'Saving a verified state uses ${PulseWalletLedger.stateSaveCost} prep credits.',
-                  key: const Key('state-entry-spend-notice'),
-                ),
+              Row(
+                children: [
+                  Expanded(
+                    child: Text(
+                      'Saving a verified state uses ${PulseWalletLedger.stateSaveCost} prep credits.',
+                      key: const Key('state-entry-spend-notice'),
+                    ),
+                  ),
+                  const PulseBalanceButton(compact: true),
+                ],
               ),
-              const PulseBalanceButton(compact: true),
+              const SizedBox(height: 8),
+              Text(
+                controller.saveScopeReadback,
+                key: const Key('state-entry-save-scope-readback'),
+                style: Theme.of(context).textTheme.bodySmall,
+              ),
             ],
           ),
         ),
@@ -185,7 +196,8 @@ class _StateEntryScreenState extends State<StateEntryScreen> {
             '${latestSavedState.batchId} | '
             '${latestSavedState.station} | '
             '${latestSavedState.state} | '
-            '${latestSavedState.note}',
+            '${latestSavedState.note} | '
+            '${latestSavedState.hasProofImage ? 'Photo linked' : 'No photo'}',
             key: const Key('state-entry-log-readback'),
           ),
         ),

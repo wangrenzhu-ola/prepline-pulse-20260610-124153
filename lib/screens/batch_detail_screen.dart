@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 
+import '../models/prep_models.dart';
 import '../state/prep_board_controller.dart';
 import '../theme/prep_theme.dart';
+import '../widgets/media_widgets.dart';
 import '../widgets/operational_page.dart';
 import '../widgets/prep_widgets.dart';
 import '../widgets/status_widgets.dart';
@@ -108,22 +110,51 @@ class BatchDetailScreen extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   if (history.isEmpty) const Text('No saved updates yet.'),
-                  for (final log in history.take(2))
-                    Padding(
-                      padding: const EdgeInsets.only(bottom: 8),
-                      child: Text(
-                        '${log.savedAt} ${log.station}: ${log.state}',
-                        key: Key(
-                          'batch-detail-history-${log.savedAt}-${log.state}',
-                        ),
-                      ),
-                    ),
+                  for (final log in history.take(2)) _HistoryRecord(log: log),
                 ],
               ),
             ),
           ],
         );
       },
+    );
+  }
+}
+
+class _HistoryRecord extends StatelessWidget {
+  const _HistoryRecord({required this.log});
+
+  final PrepLog log;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 10),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          SavedProofThumbnail(log: log, compact: true),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  '${log.savedAt} ${log.station}: ${log.state}',
+                  key: Key('batch-detail-history-${log.savedAt}-${log.state}'),
+                  style: Theme.of(context).textTheme.titleSmall,
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  log.note,
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
     );
   }
 }

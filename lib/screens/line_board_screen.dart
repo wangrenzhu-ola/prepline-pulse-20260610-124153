@@ -116,6 +116,12 @@ class _FocusBatchCard extends StatelessWidget {
                   ),
               ],
             ),
+            const SizedBox(height: 10),
+            Text(
+              controller.saveScopeReadback,
+              key: const Key('board-save-scope-readback'),
+              style: Theme.of(context).textTheme.bodySmall,
+            ),
           ],
         ),
       ),
@@ -139,7 +145,7 @@ class _StationStrip extends StatelessWidget {
             Text('Stations', style: Theme.of(context).textTheme.titleMedium),
             const SizedBox(height: 10),
             SizedBox(
-              height: 104,
+              height: 126,
               child: ListView.separated(
                 scrollDirection: Axis.horizontal,
                 itemCount: controller.stations.length,
@@ -182,7 +188,7 @@ class _StationTile extends StatelessWidget {
   Widget build(BuildContext context) {
     final statusColor = batch.blocked ? PrepTheme.error : PrepTheme.success;
     return SizedBox(
-      width: 172,
+      width: 178,
       child: InkWell(
         onTap: onTap,
         borderRadius: BorderRadius.circular(8),
@@ -214,9 +220,9 @@ class _StationTile extends StatelessWidget {
                       const Icon(Icons.radio_button_checked, size: 18),
                   ],
                 ),
-                const SizedBox(height: 12),
-                PrepStatusPill(batch.state, color: statusColor),
                 const SizedBox(height: 8),
+                PrepStatusPill(batch.state, color: statusColor),
+                const Spacer(),
                 Text(
                   batch.id,
                   maxLines: 1,

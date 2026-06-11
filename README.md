@@ -17,6 +17,10 @@ Auxiliary compliance and legacy routes may remain available to preserve iOS,
 IAP, protocol, and test coverage, but they should not compete with the primary
 navigation surface.
 
+Initial batch and station values are seed data. After the first save, the app
+writes the current batch, station, note, exception state, and linked proof photo
+path to local app records so Batch and Photos read back the same saved update.
+
 ## Photo Contract
 
 User-uploaded album images are the only visible photo material. Uploading a
@@ -35,3 +39,4 @@ the large image area shows an upload empty state instead.
   Privacy Policy reachable from Store and Settings.
 - Keep IAP initialization lazy behind the Store flow.
 - Persist media with relative paths and rebuild full paths at render/export time.
+- Link the uploaded proof photo to each state-save record when a photo exists.

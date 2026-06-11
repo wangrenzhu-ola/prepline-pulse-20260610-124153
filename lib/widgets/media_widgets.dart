@@ -179,6 +179,73 @@ class _DocumentProofImage extends StatelessWidget {
   }
 }
 
+class SavedProofThumbnail extends StatelessWidget {
+  const SavedProofThumbnail({
+    required this.log,
+    this.compact = false,
+    super.key,
+  });
+
+  final PrepLog log;
+  final bool compact;
+
+  @override
+  Widget build(BuildContext context) {
+    final proofPath = log.proofImagePath;
+    if (proofPath == null || proofPath.isEmpty) {
+      return Row(
+        key: Key('saved-proof-empty-${log.savedAt}-${log.batchId}'),
+        mainAxisSize: MainAxisSize.min,
+        children: const [
+          Icon(Icons.image_not_supported_outlined, size: 16),
+          SizedBox(width: 6),
+          Text('No saved photo'),
+        ],
+      );
+    }
+    final controller = PrepBoardScope.of(context);
+    final record = MediaRecord(
+      id: 'saved-proof-${log.savedAt}-${log.batchId}',
+      assetPath: proofPath,
+      label: 'Saved proof photo',
+      attachedTo: 'saved-record',
+      storedInDocuments: true,
+    );
+    return FutureBuilder<String>(
+      future: controller.fullMediaPath(record),
+      builder: (context, snapshot) {
+        final path = snapshot.data;
+        final height = compact ? 56.0 : 108.0;
+        return ClipRRect(
+          borderRadius: BorderRadius.circular(8),
+          child: path == null
+              ? SizedBox(
+                  key: Key('saved-proof-loading-${log.savedAt}-${log.batchId}'),
+                  height: height,
+                  child: const Center(
+                    child: CircularProgressIndicator(strokeWidth: 2),
+                  ),
+                )
+              : Image.file(
+                  File(path),
+                  key: Key('saved-proof-image-${log.savedAt}-${log.batchId}'),
+                  height: height,
+                  width: compact ? 84 : double.infinity,
+                  fit: BoxFit.cover,
+                  errorBuilder: (context, error, stackTrace) => Container(
+                    height: height,
+                    width: compact ? 84 : double.infinity,
+                    color: PrepTheme.error.withOpacity(.12),
+                    alignment: Alignment.center,
+                    child: const Icon(Icons.broken_image_outlined),
+                  ),
+                ),
+        );
+      },
+    );
+  }
+}
+
 class PrepMediaPreview extends StatelessWidget {
   const PrepMediaPreview({required this.record, super.key});
 

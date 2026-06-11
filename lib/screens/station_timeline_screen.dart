@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../models/prep_models.dart';
 import '../state/prep_board_controller.dart';
+import '../widgets/media_widgets.dart';
 import '../widgets/operational_page.dart';
 import '../widgets/prep_widgets.dart';
 
@@ -75,6 +76,8 @@ class _TimelineEntry extends StatelessWidget {
                 '${log.batchId} ${log.batchName}',
                 style: Theme.of(context).textTheme.titleSmall,
               ),
+              const SizedBox(height: 8),
+              SavedProofThumbnail(log: log),
             ],
           ),
         ),

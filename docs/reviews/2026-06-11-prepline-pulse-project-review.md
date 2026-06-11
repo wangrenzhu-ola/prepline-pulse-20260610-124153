@@ -119,6 +119,40 @@ Fixes recorded in this round:
 - IAP tracker, compliance tracker, test matrix, feature coverage, layout audit,
   and event log were updated to reflect the restored catalog and policy links.
 
+### Documentation Change Round 5
+
+The fifth documentation update records the Board self-review prompted by the
+latest simulator screenshot.
+
+Issues found:
+
+- `Save ready` changed in-memory batch/station state and appended a log, but did
+  not explain what was saved or where the record could be found.
+- Saved logs did not carry the current uploaded proof image path, so the user
+  could not tell whether a save included the large photo.
+- Mutable batch/log/exception/media state was not written to local app storage,
+  so the flow still felt like a demo after restart.
+- `ServiceClockScreen` had a hardcoded initial readback string and its refresh
+  action updated internal text without rebuilding the UI.
+- The Board station strip could overflow on the simulator viewport shown by the
+  user.
+
+Fixes recorded in this round:
+
+- State saves now write local app records through `PreplineStateStore`.
+- Save records include the uploaded proof photo relative path when a user photo
+  exists.
+- Saved proof image files are retained when the current proof photo is replaced
+  or removed, so historical records keep their thumbnails.
+- Uploaded proof media records are restored with the saved session.
+- Board and State Entry now state what a save records.
+- Batch Detail and Photos/Timeline read back saved proof thumbnails from the
+  same logs.
+- Service Clock readback is calculated from current controller data and refresh
+  calls `setState`.
+- The Board station strip height and tile layout were adjusted to remove the
+  bottom overflow.
+
 ## High Priority Issues
 
 ### 1. Split Global State

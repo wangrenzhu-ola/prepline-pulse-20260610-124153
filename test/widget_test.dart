@@ -1,7 +1,10 @@
+import 'dart:collection';
 import 'dart:io';
+import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'package:app_20260610_124153/data/prep_seed_data.dart';
@@ -14,6 +17,7 @@ import 'package:app_20260610_124153/screens/service_clock_screen.dart';
 import 'package:app_20260610_124153/screens/settings_screen.dart';
 import 'package:app_20260610_124153/screens/state_entry_screen.dart';
 import 'package:app_20260610_124153/services/prepline_document_media_store.dart';
+import 'package:app_20260610_124153/services/prepline_permission_service.dart';
 import 'package:app_20260610_124153/services/prepline_purchase_service.dart';
 import 'package:app_20260610_124153/state/prep_board_controller.dart';
 import 'package:app_20260610_124153/widgets/media_widgets.dart';
@@ -348,6 +352,68 @@ void main() {
     expect(controller.lastResolvedException, contains('B-104'));
   });
 
+  test('state saves persist proof image paths and restore local records',
+      () async {
+    final pickedFile = File(
+      '${Directory.systemTemp.path}/prepline-picked-proof.jpg',
+    )..writeAsBytesSync([1, 2, 3, 4]);
+    final mediaStore = _FakeMediaStore([
+      'station_images/proof.jpg',
+      'station_images/replacement.jpg',
+    ]);
+    final first = PrepBoardController(
+      mediaStore: mediaStore,
+      permissionService: _AlwaysAllowedPermissionService(),
+      imagePicker: _FakeImagePicker(XFile(pickedFile.path)),
+    );
+    addTearDown(first.dispose);
+    await first.ready;
+
+    await first.uploadMedia('line-board');
+    await first.waitForPendingPersistence();
+
+    expect(first.primaryUserMediaFor('line-board')?.assetPath,
+        'station_images/proof.jpg');
+    expect(first.primaryUserMediaFor('batch-detail')?.assetPath,
+        'station_images/proof.jpg');
+    expect(first.saveScopeReadback, contains('linked proof photo'));
+
+    first.saveState(
+      station: 'Hot line',
+      nextState: 'Ready',
+      note: 'Photo proof linked.',
+    );
+    await first.waitForPendingPersistence();
+
+    expect(first.latestSavedState.proofImagePath, 'station_images/proof.jpg');
+    expect(first.visibleConfirmation, contains('photo linked'));
+
+    await first.uploadMedia('line-board');
+    await first.waitForPendingPersistence();
+
+    expect(
+        mediaStore.deletedPaths, isNot(contains('station_images/proof.jpg')));
+    expect(first.primaryUserMediaFor('line-board')?.assetPath,
+        'station_images/replacement.jpg');
+    expect(first.latestSavedState.proofImagePath, 'station_images/proof.jpg');
+
+    final restored = PrepBoardController(
+      mediaStore: _FakeMediaStore(),
+      permissionService: _AlwaysAllowedPermissionService(),
+      imagePicker: _FakeImagePicker(null),
+    );
+    addTearDown(restored.dispose);
+    await restored.ready;
+
+    expect(restored.selectedBatch.state, 'Ready');
+    expect(restored.selectedBatch.note, 'Photo proof linked.');
+    expect(
+        restored.latestSavedState.proofImagePath, 'station_images/proof.jpg');
+    expect(restored.primaryUserMediaFor('line-board')?.assetPath,
+        'station_images/replacement.jpg');
+    expect(restored.visibleConfirmation, contains('Restored B-104 Ready'));
+  });
+
   testWidgets('asset image records show upload-required placeholder', (
     tester,
   ) async {
@@ -434,4 +500,63 @@ class _FlowReviewEvidenceAppState extends State<_FlowReviewEvidenceApp> {
       ),
     );
   }
+}
+
+class _AlwaysAllowedPermissionService extends PreplinePermissionService {
+  @override
+  Future<bool> requestPhotoLibraryRead() async => true;
+
+  @override
+  Future<bool> requestPhotoLibraryWrite() async => true;
+}
+
+class _FakeImagePicker extends ImagePicker {
+  _FakeImagePicker(this.file);
+
+  final XFile? file;
+
+  @override
+  Future<XFile?> pickImage({
+    required ImageSource source,
+    double? maxWidth,
+    double? maxHeight,
+    int? imageQuality,
+    CameraDevice preferredCameraDevice = CameraDevice.rear,
+    bool requestFullMetadata = true,
+  }) async {
+    return file;
+  }
+}
+
+class _FakeMediaStore extends PreplineDocumentMediaStore {
+  _FakeMediaStore([List<String>? savedPaths])
+      : _savedPaths = Queue.of(savedPaths ?? ['station_images/proof.jpg']);
+
+  final Queue<String> _savedPaths;
+  final List<String> deletedPaths = [];
+
+  @override
+  Future<String> saveBytes({
+    required Uint8List bytes,
+    required String folder,
+    required String extension,
+  }) async {
+    if (_savedPaths.isEmpty) {
+      return 'station_images/proof.jpg';
+    }
+    return _savedPaths.removeFirst();
+  }
+
+  @override
+  Future<File> rebuildFile(String relativePath) async {
+    return File('${Directory.systemTemp.path}/$relativePath');
+  }
+
+  @override
+  Future<void> deleteRelativePath(String relativePath) async {
+    deletedPaths.add(relativePath);
+  }
+
+  @override
+  Future<void> saveRelativePathToGallery(String relativePath) async {}
 }

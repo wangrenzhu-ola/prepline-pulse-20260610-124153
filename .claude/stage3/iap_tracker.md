@@ -7,7 +7,7 @@ phase: completed
 
 Scope: Implement and re-review the 27 product catalog, lazy StoreKit service, purchase flow, idempotent balance crediting, global balance state, one spend point, discoverable store entry, and Store policy links.
 
-Files: `pubspec.yaml`, `lib/models/pulse_store_models.dart`, `lib/services/prepline_purchase_service.dart`, `lib/state/prep_board_controller.dart`, `lib/screens/pulse_store_screen.dart`, `lib/widgets/pulse_balance_button.dart`, `lib/screens/app_shell.dart`, `lib/screens/state_entry_screen.dart`, `lib/screens/protocol_screen.dart`, `.claude/test_matrix.md`, `.claude/feature_coverage_matrix.md`, `.claude/stage4/layout_audit.md`.
+Files: `pubspec.yaml`, `lib/models/pulse_store_models.dart`, `lib/services/prepline_purchase_service.dart`, `lib/services/prepline_state_store.dart`, `lib/state/prep_board_controller.dart`, `lib/screens/pulse_store_screen.dart`, `lib/widgets/pulse_balance_button.dart`, `lib/screens/app_shell.dart`, `lib/screens/state_entry_screen.dart`, `lib/screens/protocol_screen.dart`, `.claude/test_matrix.md`, `.claude/feature_coverage_matrix.md`, `.claude/stage4/layout_audit.md`.
 
 Order: create catalog and wallet persistence; add purchase service with lazy init; wire controller balance and spend point; add store page and entry points; keep all 27 products visible; keep User Agreement and Privacy Policy reachable from Store; verify idempotent delivery and small-card layout.
 
@@ -33,7 +33,7 @@ Unique spend point: `StateEntryScreen` save action, fixed cost 10 units.
 | transaction_cleanup_complete | passed | `_finishPlatformTransaction` guarded by `pendingCompletePurchase` |
 | coin_delivery_idempotent | passed | `PulseWalletLedger.addPurchaseOnce`; `flutter test` |
 | virtual_currency_persistence | passed | `SharedPreferences` balance ledger |
-| single_spend_point_bound | passed | `PrepBoardController.saveState` |
+| single_spend_point_bound | passed | `PrepBoardController.saveState`; `PreplineStateStore.writeSession` |
 | spend_point_cost_fixed_10 | passed | `PulseWalletLedger.stateSaveCost` |
 | spend_point_notice_visible | passed | Board, Batch, and State Entry save surfaces |
 | balance_refresh_global | passed | `PrepBoardController` notifies all scoped pages |
@@ -50,7 +50,7 @@ Unique spend point: `StateEntryScreen` save action, fixed cost 10 units.
 - purchase_flow_complete: card tap opens confirmation dialog before `buyConsumable(autoConsume: true)`.
 - transaction_cleanup_complete: purchased, restored, error, and canceled terminal states finish pending platform transactions.
 - coin_delivery_idempotent: persisted delivery keys prevent duplicate crediting after repeated callbacks.
-- single_spend_point_bound: state save is the only credit spend point and costs exactly 10.
+- single_spend_point_bound: state save is the only credit spend point, costs exactly 10, and writes the saved record to local app storage.
 - balance_entry_navigation: Board AppBar/body expose balance buttons; AppShell exposes Store as a primary destination.
 - store_policy_links: Store exposes User Agreement and Privacy Policy without reintroducing the removed settings icon.
 - verification: `flutter analyze`; `flutter test`; `flutter build ios --simulator`.
