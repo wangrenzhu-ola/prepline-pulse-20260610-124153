@@ -25,8 +25,11 @@ path to local app records so Batch and Photos read back the same saved update.
 
 User-uploaded album images are the only visible photo material. Uploading a
 proof photo from any core photo surface promotes that image to the large hero
-image on Board, Batch, and Photos. The save-to-album action belongs on that
-large proof image, not in a secondary controls panel.
+image on Board, Batch, and Photos. The primary save action is the batch/state
+save with the linked proof photo. Exporting from the large image generates a
+new proof card image with the photo, batch, state, station, owner, time, and
+note, then writes that generated card to the system Photos album named
+`PrepLine Pulse`.
 
 Built-in `assets/images` files must not be rendered as UI photos; before upload,
 the large image area shows an upload empty state instead.
@@ -40,3 +43,5 @@ the large image area shows an upload empty state instead.
 - Keep IAP initialization lazy behind the Store flow.
 - Persist media with relative paths and rebuild full paths at render/export time.
 - Link the uploaded proof photo to each state-save record when a photo exists.
+- Keep proof-card export visually secondary to the state-save action, because
+  export does not create an app record.

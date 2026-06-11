@@ -50,7 +50,7 @@ class BatchDetailScreen extends StatelessWidget {
               ),
             ),
             InfoCard(
-              title: 'Next action',
+              title: 'Save this batch',
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -59,31 +59,36 @@ class BatchDetailScreen extends StatelessWidget {
                     key: const Key('batch-detail-station-readback'),
                   ),
                   const SizedBox(height: 12),
-                  Wrap(
-                    spacing: 8,
-                    runSpacing: 8,
-                    children: [
-                      FilledButton.icon(
-                        key: const Key('batch-detail-save-state-button'),
-                        onPressed: () {
-                          controller.selectBatch(batch.id);
-                          controller.saveState(nextState: 'Ready');
-                        },
-                        icon: const Icon(Icons.check_circle_outline),
-                        label: const Text('Save ready'),
-                      ),
-                      OutlinedButton.icon(
-                        key: const Key('batch-detail-resolve-blocked-button'),
-                        onPressed: exception == null
-                            ? null
-                            : () {
-                                controller.selectBatch(batch.id);
-                                controller.resolveBlocked(batch.id);
-                              },
-                        icon: const Icon(Icons.task_alt),
-                        label: const Text('Clear block'),
-                      ),
-                    ],
+                  SizedBox(
+                    width: double.infinity,
+                    child: FilledButton.icon(
+                      key: const Key('batch-detail-save-state-button'),
+                      onPressed: () =>
+                          _saveReady(context, controller, batch.id),
+                      icon: const Icon(Icons.check_circle_outline),
+                      label: Text(controller.primarySaveActionLabel),
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  SizedBox(
+                    width: double.infinity,
+                    child: OutlinedButton.icon(
+                      key: const Key('batch-detail-resolve-blocked-button'),
+                      onPressed: exception == null
+                          ? null
+                          : () => _resolveBlock(
+                                context,
+                                controller,
+                                batch.id,
+                              ),
+                      icon: const Icon(Icons.task_alt),
+                      label: const Text('Clear block'),
+                    ),
+                  ),
+                  const SizedBox(height: 10),
+                  Text(
+                    controller.saveScopeReadback,
+                    style: Theme.of(context).textTheme.bodySmall,
                   ),
                   if (controller.lastConfirmation != null) ...[
                     const SizedBox(height: 10),
@@ -118,6 +123,40 @@ class BatchDetailScreen extends StatelessWidget {
         );
       },
     );
+  }
+
+  void _saveReady(
+    BuildContext context,
+    PrepBoardController controller,
+    String batchId,
+  ) {
+    controller.selectBatch(batchId);
+    controller.saveState(nextState: 'Ready');
+    ScaffoldMessenger.of(context)
+      ..hideCurrentSnackBar()
+      ..showSnackBar(
+        SnackBar(
+          content: Text(controller.visibleConfirmation),
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+  }
+
+  void _resolveBlock(
+    BuildContext context,
+    PrepBoardController controller,
+    String batchId,
+  ) {
+    controller.selectBatch(batchId);
+    controller.resolveBlocked(batchId);
+    ScaffoldMessenger.of(context)
+      ..hideCurrentSnackBar()
+      ..showSnackBar(
+        SnackBar(
+          content: Text(controller.lastResolvedException ?? 'Block cleared.'),
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
   }
 }
 

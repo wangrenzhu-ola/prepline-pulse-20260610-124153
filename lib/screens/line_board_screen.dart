@@ -47,6 +47,11 @@ class _FocusBatchCard extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            Text(
+              'Save current state',
+              style: Theme.of(context).textTheme.titleMedium,
+            ),
+            const SizedBox(height: 10),
             Row(
               children: [
                 Expanded(
@@ -93,27 +98,38 @@ class _FocusBatchCard extends StatelessWidget {
               },
             ),
             const SizedBox(height: 12),
-            Wrap(
-              spacing: 8,
-              runSpacing: 8,
+            SizedBox(
+              width: double.infinity,
+              child: FilledButton.icon(
+                key: const Key('line-board-primary-save-button'),
+                onPressed: () => _saveReady(context, controller),
+                icon: const Icon(Icons.check_circle_outline),
+                label: Text(controller.primarySaveActionLabel),
+              ),
+            ),
+            const SizedBox(height: 8),
+            Row(
               children: [
-                FilledButton.icon(
-                  onPressed: () => controller.saveState(nextState: 'Ready'),
-                  icon: const Icon(Icons.check_circle_outline),
-                  label: const Text('Save ready'),
-                ),
-                OutlinedButton.icon(
-                  onPressed: () =>
-                      Navigator.pushNamed(context, BatchDetailScreen.routeName),
-                  icon: const Icon(Icons.receipt_long_outlined),
-                  label: const Text('Batch detail'),
-                ),
-                if (batch.blocked)
-                  OutlinedButton.icon(
-                    onPressed: () => controller.resolveBlocked(batch.id),
-                    icon: const Icon(Icons.task_alt),
-                    label: const Text('Clear block'),
+                Expanded(
+                  child: OutlinedButton.icon(
+                    onPressed: () => Navigator.pushNamed(
+                      context,
+                      BatchDetailScreen.routeName,
+                    ),
+                    icon: const Icon(Icons.receipt_long_outlined),
+                    label: const Text('Open batch'),
                   ),
+                ),
+                if (batch.blocked) ...[
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: OutlinedButton.icon(
+                      onPressed: () => controller.resolveBlocked(batch.id),
+                      icon: const Icon(Icons.task_alt),
+                      label: const Text('Clear block'),
+                    ),
+                  ),
+                ],
               ],
             ),
             const SizedBox(height: 10),
@@ -126,6 +142,18 @@ class _FocusBatchCard extends StatelessWidget {
         ),
       ),
     );
+  }
+
+  void _saveReady(BuildContext context, PrepBoardController controller) {
+    controller.saveState(nextState: 'Ready');
+    ScaffoldMessenger.of(context)
+      ..hideCurrentSnackBar()
+      ..showSnackBar(
+        SnackBar(
+          content: Text(controller.visibleConfirmation),
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
   }
 }
 

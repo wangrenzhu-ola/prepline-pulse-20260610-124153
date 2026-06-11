@@ -263,10 +263,10 @@ class MediaRecordPanel extends StatelessWidget {
                 ),
                 OutlinedButton.icon(
                   onPressed: item.storedInDocuments
-                      ? () => controller.saveMediaToAlbum(item.id)
+                      ? () => _exportToPhotos(context, controller, item)
                       : null,
                   icon: const Icon(Icons.photo_library_outlined),
-                  label: const Text('Save album'),
+                  label: const Text('Export proof'),
                 ),
                 OutlinedButton.icon(
                   onPressed: () => controller.deleteMedia(item.id),
@@ -279,6 +279,29 @@ class MediaRecordPanel extends StatelessWidget {
         ],
       ),
     );
+  }
+
+  Future<void> _exportToPhotos(
+    BuildContext context,
+    PrepBoardController controller,
+    MediaRecord media,
+  ) async {
+    final exported = await controller.exportProofCardToAlbum(media.id);
+    if (!context.mounted) {
+      return;
+    }
+    final message = controller.mediaReadback ??
+        (exported
+            ? 'Exported proof card to Photos album: PrepLine Pulse.'
+            : 'Export failed.');
+    ScaffoldMessenger.of(context)
+      ..hideCurrentSnackBar()
+      ..showSnackBar(
+        SnackBar(
+          content: Text(message),
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
   }
 }
 

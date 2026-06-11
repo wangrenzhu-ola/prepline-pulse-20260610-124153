@@ -28,12 +28,8 @@ class PreplinePermissionService {
   }
 
   Future<bool> requestPhotoLibraryWrite() async {
-    final photos = await Permission.photosAddOnly.request();
-    if (photos.isGranted || photos.isLimited) {
-      return true;
-    }
-    final fallback = await Permission.photos.request();
-    return fallback.isGranted || fallback.isLimited;
+    final photos = await Permission.photos.request();
+    return photos.isGranted || photos.isLimited;
   }
 
   Future<PrepPermissionSnapshot> requestMediaAccess() async {

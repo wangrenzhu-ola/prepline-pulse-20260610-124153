@@ -54,37 +54,34 @@ class _StateEntryScreenState extends State<StateEntryScreen> {
       title: 'State Entry',
       children: [
         _EntryCard(
-          title: 'Batch selector',
-          child: DropdownButtonFormField<String>(
-            key: const Key('state-entry-batch-selector'),
-            value: controller.selectedBatchId,
-            decoration: const InputDecoration(labelText: 'Active batch'),
-            items: [
-              for (final batch in controller.batches)
-                DropdownMenuItem(
-                  value: batch.id,
-                  child: Text('${batch.id} - ${batch.name}'),
-                ),
-            ],
-            onChanged: (value) {
-              if (value == null) {
-                return;
-              }
-              setState(() {
-                controller.selectBatch(value);
-                _selectedStation = controller.selectedBatch.station;
-                _selectedState = controller.selectedBatch.state;
-                noteController.text = controller.selectedBatch.note;
-              });
-            },
-          ),
-        ),
-        const SizedBox(height: 12),
-        _EntryCard(
-          title: 'Station selector/readback',
+          title: 'Save station update',
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+              DropdownButtonFormField<String>(
+                key: const Key('state-entry-batch-selector'),
+                value: controller.selectedBatchId,
+                decoration: const InputDecoration(labelText: 'Active batch'),
+                items: [
+                  for (final batch in controller.batches)
+                    DropdownMenuItem(
+                      value: batch.id,
+                      child: Text('${batch.id} - ${batch.name}'),
+                    ),
+                ],
+                onChanged: (value) {
+                  if (value == null) {
+                    return;
+                  }
+                  setState(() {
+                    controller.selectBatch(value);
+                    _selectedStation = controller.selectedBatch.station;
+                    _selectedState = controller.selectedBatch.state;
+                    noteController.text = controller.selectedBatch.note;
+                  });
+                },
+              ),
+              const SizedBox(height: 12),
               DropdownButtonFormField<String>(
                 key: const Key('state-entry-station-selector'),
                 value: _selectedStation,
@@ -105,51 +102,38 @@ class _StateEntryScreenState extends State<StateEntryScreen> {
                 'Readback: $_selectedStation for ${selectedBatch.id}',
                 key: const Key('station-readback'),
               ),
-            ],
-          ),
-        ),
-        const SizedBox(height: 12),
-        _EntryCard(
-          title: 'State segmented controls',
-          child: SegmentedButton<String>(
-            key: const Key('state-entry-segmented-controls'),
-            segments: const [
-              ButtonSegment(value: 'Waiting', label: Text('Waiting')),
-              ButtonSegment(value: 'Cooking', label: Text('Cooking')),
-              ButtonSegment(value: 'Ready', label: Text('Ready')),
-              ButtonSegment(value: 'Blocked', label: Text('Blocked')),
-            ],
-            selected: {_selectedState},
-            onSelectionChanged: (values) {
-              setState(() => _selectedState = values.first);
-            },
-          ),
-        ),
-        const SizedBox(height: 12),
-        _EntryCard(
-          title: 'Note field',
-          child: TextField(
-            key: const Key('state-entry-note-field'),
-            controller: noteController,
-            minLines: 2,
-            maxLines: 4,
-            decoration: const InputDecoration(
-              border: OutlineInputBorder(),
-              hintText: 'Add station handoff note',
-            ),
-          ),
-        ),
-        const SizedBox(height: 12),
-        _EntryCard(
-          title: 'Save cost',
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
+              const SizedBox(height: 12),
+              SegmentedButton<String>(
+                key: const Key('state-entry-segmented-controls'),
+                showSelectedIcon: false,
+                segments: const [
+                  ButtonSegment(value: 'Waiting', label: Text('Waiting')),
+                  ButtonSegment(value: 'Cooking', label: Text('Cooking')),
+                  ButtonSegment(value: 'Ready', label: Text('Ready')),
+                  ButtonSegment(value: 'Blocked', label: Text('Blocked')),
+                ],
+                selected: {_selectedState},
+                onSelectionChanged: (values) {
+                  setState(() => _selectedState = values.first);
+                },
+              ),
+              const SizedBox(height: 12),
+              TextField(
+                key: const Key('state-entry-note-field'),
+                controller: noteController,
+                minLines: 2,
+                maxLines: 4,
+                decoration: const InputDecoration(
+                  border: OutlineInputBorder(),
+                  labelText: 'Handoff note',
+                ),
+              ),
+              const SizedBox(height: 12),
               Row(
                 children: [
                   Expanded(
                     child: Text(
-                      'Saving a verified state uses ${PulseWalletLedger.stateSaveCost} prep credits.',
+                      '${PulseWalletLedger.stateSaveCost} prep credits per save.',
                       key: const Key('state-entry-spend-notice'),
                     ),
                   ),
@@ -162,43 +146,60 @@ class _StateEntryScreenState extends State<StateEntryScreen> {
                 key: const Key('state-entry-save-scope-readback'),
                 style: Theme.of(context).textTheme.bodySmall,
               ),
+              const SizedBox(height: 12),
+              SizedBox(
+                width: double.infinity,
+                child: FilledButton.icon(
+                  key: const Key('state-entry-save-button'),
+                  onPressed: () {
+                    setState(() {
+                      controller.saveState(
+                        station: _selectedStation,
+                        nextState: _selectedState,
+                        note: noteController.text,
+                      );
+                    });
+                    ScaffoldMessenger.of(context)
+                      ..hideCurrentSnackBar()
+                      ..showSnackBar(
+                        SnackBar(
+                          content: Text(controller.visibleConfirmation),
+                          behavior: SnackBarBehavior.floating,
+                        ),
+                      );
+                  },
+                  icon: const Icon(Icons.save_outlined),
+                  label: Text(
+                    controller.hasProofPhoto
+                        ? 'Save update with photo'
+                        : 'Save update',
+                  ),
+                ),
+              ),
+              const SizedBox(height: 10),
+              Text(
+                controller.visibleConfirmation,
+                key: const Key('saved-state-confirmation'),
+              ),
             ],
           ),
         ),
         const SizedBox(height: 12),
-        FilledButton.icon(
-          key: const Key('state-entry-save-button'),
-          onPressed: () {
-            setState(() {
-              controller.saveState(
-                station: _selectedStation,
-                nextState: _selectedState,
-                note: noteController.text,
-              );
-            });
-          },
-          icon: const Icon(Icons.save_outlined),
-          label: const Text('Save state'),
-        ),
-        const SizedBox(height: 12),
         _EntryCard(
-          title: 'Saved-state confirmation',
-          child: Text(
-            controller.visibleConfirmation,
-            key: const Key('saved-state-confirmation'),
-          ),
-        ),
-        const SizedBox(height: 12),
-        _EntryCard(
-          title: 'Log readback',
-          child: Text(
-            '${latestSavedState.savedAt} | '
-            '${latestSavedState.batchId} | '
-            '${latestSavedState.station} | '
-            '${latestSavedState.state} | '
-            '${latestSavedState.note} | '
-            '${latestSavedState.hasProofImage ? 'Photo linked' : 'No photo'}',
-            key: const Key('state-entry-log-readback'),
+          title: 'Latest saved record',
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                '${latestSavedState.savedAt} | '
+                '${latestSavedState.batchId} | '
+                '${latestSavedState.station} | '
+                '${latestSavedState.state} | '
+                '${latestSavedState.note} | '
+                '${latestSavedState.hasProofImage ? 'Photo linked' : 'No photo'}',
+                key: const Key('state-entry-log-readback'),
+              ),
+            ],
           ),
         ),
       ],

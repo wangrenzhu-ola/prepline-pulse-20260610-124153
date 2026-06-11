@@ -61,6 +61,7 @@ class PrepBoardController extends ChangeNotifier {
   String? lastConfirmation;
   String? lastResolvedException;
   String? mediaReadback;
+  String? activeAlbumExportMediaId;
   String? storeReadback;
   String? activePurchaseProductId;
   int pulseCredits = PulseWalletLedger.initialBalance;
@@ -74,6 +75,7 @@ class PrepBoardController extends ChangeNotifier {
   List<MediaRecord> get mediaRecords => List.unmodifiable(_media);
   PrepLog get latestSavedState => _latestSavedState;
   PrepLog get latestLog => _latestSavedState;
+  bool get hasProofPhoto => primaryUserMediaFor('line-board') != null;
   MediaRecord get media {
     final lineBoardMedia = mediaFor('line-board');
     return lineBoardMedia.isEmpty ? _snapshot.media : lineBoardMedia.first;
@@ -85,12 +87,14 @@ class PrepBoardController extends ChangeNotifier {
   Future<void> get ready => Future.wait([_restoreFuture, _pulseCreditsFuture]);
 
   String get saveScopeReadback {
-    final hasProof = primaryUserMediaFor('line-board') != null;
-    if (hasProof) {
-      return 'Saves batch, station, note, and linked proof photo to local records.';
+    if (hasProofPhoto) {
+      return 'Saves batch, station, note, and proof photo to local records.';
     }
-    return 'Saves batch, station, and note to local records. Upload a photo to link proof.';
+    return 'Upload a proof photo first to include it in the saved record.';
   }
+
+  String get primarySaveActionLabel =>
+      hasProofPhoto ? 'Save ready with photo' : 'Save ready';
 
   PrepBatch get selectedBatch =>
       _batches.firstWhere((batch) => batch.id == selectedBatchId);
@@ -163,7 +167,7 @@ class PrepBoardController extends ChangeNotifier {
     _logs.add(_latestSavedState);
     _syncExceptionForSavedState(updated);
     visibleConfirmation =
-        'Saved ${updated.id} as ${updated.state} at ${_latestSavedState.savedAt}; ${PulseWalletLedger.stateSaveCost} credits used; ${_latestSavedState.hasProofImage ? 'photo linked' : 'no photo linked'}.';
+        'Saved ${updated.id} as ${updated.state} at ${_latestSavedState.savedAt}. ${_latestSavedState.hasProofImage ? 'Proof photo attached.' : 'No proof photo attached.'} ${PulseWalletLedger.stateSaveCost} credits used.';
     lastConfirmation = visibleConfirmation;
     _queueSessionPersistence();
     notifyListeners();
@@ -313,23 +317,44 @@ class PrepBoardController extends ChangeNotifier {
     notifyListeners();
   }
 
-  Future<void> saveMediaToAlbum(String mediaId) async {
+  Future<bool> exportProofCardToAlbum(String mediaId) async {
     final media = _media.firstWhere((item) => item.id == mediaId);
     if (!media.storedInDocuments) {
-      mediaReadback = 'Built-in proof images do not need album export.';
+      mediaReadback = 'Built-in proof images cannot create proof cards.';
       notifyListeners();
-      return;
+      return false;
     }
-    final allowed = await _permissionService.requestPhotoLibraryWrite();
-    if (!allowed) {
-      mediaReadback =
-          'Album save is unavailable; the image remains safely in this app.';
-      notifyListeners();
-      return;
-    }
-    await _mediaStore.saveRelativePathToGallery(media.assetPath);
-    mediaReadback = 'Saved to Photos.';
+    activeAlbumExportMediaId = mediaId;
+    mediaReadback = 'Creating proof card for Photos...';
     notifyListeners();
+    try {
+      final allowed = await _permissionService.requestPhotoLibraryWrite();
+      if (!allowed) {
+        mediaReadback =
+            'Photos export permission is unavailable. The proof record remains in this app.';
+        return false;
+      }
+      final batch = selectedBatch;
+      await _mediaStore.exportProofCardToGallery(
+        photoRelativePath: media.assetPath,
+        batchId: batch.id,
+        batchName: batch.name,
+        station: batch.station,
+        state: batch.state,
+        owner: batch.owner,
+        note: batch.note,
+        exportedAt: _clockLabel(),
+      );
+      mediaReadback = 'Exported proof card to Photos album: PrepLine Pulse.';
+      return true;
+    } catch (_) {
+      mediaReadback =
+          'Could not export proof card. The proof record remains in this app.';
+      return false;
+    } finally {
+      activeAlbumExportMediaId = null;
+      notifyListeners();
+    }
   }
 
   void replaceMedia(String mediaId) {

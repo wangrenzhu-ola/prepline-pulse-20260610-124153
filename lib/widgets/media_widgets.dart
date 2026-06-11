@@ -21,6 +21,8 @@ class PrimaryProofHero extends StatelessWidget {
   Widget build(BuildContext context) {
     final controller = PrepBoardScope.of(context);
     final media = controller.primaryUserMediaFor(attachedTo);
+    final exporting =
+        media != null && controller.activeAlbumExportMediaId == media.id;
     final height = (MediaQuery.sizeOf(context).height * .36)
         .clamp(250.0, 340.0)
         .toDouble();
@@ -74,8 +76,9 @@ class PrimaryProofHero extends StatelessWidget {
                 const SizedBox(height: 6),
                 Text(
                   media == null
-                      ? 'Upload a photo from your album.'
-                      : controller.mediaReadback ?? 'Uploaded proof photo.',
+                      ? 'Upload one proof photo for Board, Batch, and Photos.'
+                      : controller.mediaReadback ??
+                          'Shared proof photo. Export creates a proof card.',
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,
                 ),
@@ -84,19 +87,42 @@ class PrimaryProofHero extends StatelessWidget {
                   spacing: 8,
                   runSpacing: 8,
                   children: [
-                    FilledButton.icon(
-                      key: Key('primary-proof-upload-$attachedTo'),
-                      onPressed: () => controller.uploadMedia(attachedTo),
-                      icon: const Icon(Icons.add_photo_alternate_outlined),
-                      label: Text(media == null ? 'Upload photo' : 'Replace'),
-                    ),
-                    if (media != null)
+                    if (media == null)
+                      FilledButton.icon(
+                        key: Key('primary-proof-upload-$attachedTo'),
+                        onPressed: () => controller.uploadMedia(attachedTo),
+                        icon: const Icon(Icons.add_photo_alternate_outlined),
+                        label: const Text('Upload proof photo'),
+                      )
+                    else ...[
                       OutlinedButton.icon(
                         key: Key('primary-proof-save-$attachedTo'),
-                        onPressed: () => controller.saveMediaToAlbum(media.id),
-                        icon: const Icon(Icons.photo_library_outlined),
-                        label: const Text('Save to Photos'),
+                        onPressed: exporting
+                            ? null
+                            : () => _exportToPhotos(
+                                  context,
+                                  controller,
+                                  media,
+                                ),
+                        icon: exporting
+                            ? const SizedBox(
+                                width: 18,
+                                height: 18,
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                ),
+                              )
+                            : const Icon(Icons.photo_library_outlined),
+                        label:
+                            Text(exporting ? 'Exporting...' : 'Export proof'),
                       ),
+                      OutlinedButton.icon(
+                        key: Key('primary-proof-upload-$attachedTo'),
+                        onPressed: () => controller.uploadMedia(attachedTo),
+                        icon: const Icon(Icons.add_photo_alternate_outlined),
+                        label: const Text('Replace photo'),
+                      ),
+                    ],
                   ],
                 ),
               ],
@@ -105,6 +131,29 @@ class PrimaryProofHero extends StatelessWidget {
         ],
       ),
     );
+  }
+
+  Future<void> _exportToPhotos(
+    BuildContext context,
+    PrepBoardController controller,
+    MediaRecord media,
+  ) async {
+    final exported = await controller.exportProofCardToAlbum(media.id);
+    if (!context.mounted) {
+      return;
+    }
+    final message = controller.mediaReadback ??
+        (exported
+            ? 'Exported proof card to Photos album: PrepLine Pulse.'
+            : 'Export failed.');
+    ScaffoldMessenger.of(context)
+      ..hideCurrentSnackBar()
+      ..showSnackBar(
+        SnackBar(
+          content: Text(message),
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
   }
 }
 

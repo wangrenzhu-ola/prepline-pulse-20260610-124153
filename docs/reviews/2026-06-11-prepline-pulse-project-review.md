@@ -90,8 +90,9 @@ Root causes found:
 - Built-in `assets/images` PNGs were displayed as large hero/media images,
   which made it unclear whether the user was seeing uploaded album media or
   placeholder art.
-- Save-to-album lived in a secondary media panel instead of on the primary proof
-  image, so the photo workflow did not feel like the product's main action.
+- Save-to-album was presented like a primary workflow, and the first fix still
+  only exported the original uploaded photo back to system Photos. That was not
+  a meaningful product action because the user had just imported that photo.
 
 Fixes recorded in this round:
 
@@ -102,7 +103,40 @@ Fixes recorded in this round:
 - Uploading a proof photo promotes that user image to all three large-image
   pages.
 - Built-in `assets/images` files are no longer rendered as UI photos.
-- Save-to-album is attached directly to the large user proof image.
+- The large proof image now exports a generated proof card rather than the
+  imported original photo, while state saving owns the primary "save with photo"
+  workflow.
+
+### Documentation Change Round 6
+
+The sixth update records the interaction self-review prompted by the user's
+concern that the photo action felt small and unclear.
+
+Issues found:
+
+- `Save to Photos` sounded like the core save action even though it only wrote
+  the uploaded original photo back to the system Photos album.
+- The Board and Batch save controls were visually smaller than the image export
+  control, so the app's actual record-saving workflow felt secondary.
+- The Photos tab read like a generic timeline instead of a saved proof-photo
+  surface.
+- State Entry split one save workflow across many small cards.
+- Album export pre-requested add-only permission, while named album export uses
+  the Photos read/write path.
+
+Fixes recorded in this round:
+
+- Replaced original-photo export with generated proof-card export. The generated
+  card includes the proof photo, batch, state, station, owner, export time, and
+  note before writing to the `PrepLine Pulse` Photos album.
+- Renamed the image action to `Export proof` so it no longer implies a business
+  record save or an original-photo duplicate.
+- Promoted `Save ready with photo` / `Save update with photo` as the primary app
+  record action.
+- Added Snackbar feedback for state saves and image export.
+- Simplified State Entry into one save form plus a latest-record readback.
+- Reworked Photos to show proof records that actually have linked images.
+- Aligned named album export permission with Photos read/write access.
 
 ### Documentation Change Round 4
 

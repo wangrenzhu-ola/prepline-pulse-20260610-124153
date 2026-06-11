@@ -272,6 +272,9 @@ void main() {
         300,
         scrollable: stateEntryScroll,
       );
+      await tester
+          .ensureVisible(find.byKey(const Key('state-entry-save-button')));
+      await tester.pumpAndSettle();
       await tester.tap(find.byKey(const Key('state-entry-save-button')));
       await tester.pumpAndSettle();
 
@@ -281,7 +284,12 @@ void main() {
         scrollable: stateEntryScroll,
       );
       expect(find.byKey(const Key('saved-state-confirmation')), findsOneWidget);
-      expect(find.textContaining('Saved B-104 as'), findsOneWidget);
+      expect(
+        tester
+            .widget<Text>(find.byKey(const Key('saved-state-confirmation')))
+            .data,
+        contains('Saved B-104 as'),
+      );
 
       await tester.scrollUntilVisible(
         find.byKey(const Key('state-entry-log-readback')),
@@ -376,7 +384,7 @@ void main() {
         'station_images/proof.jpg');
     expect(first.primaryUserMediaFor('batch-detail')?.assetPath,
         'station_images/proof.jpg');
-    expect(first.saveScopeReadback, contains('linked proof photo'));
+    expect(first.saveScopeReadback, contains('proof photo'));
 
     first.saveState(
       station: 'Hot line',
@@ -386,7 +394,7 @@ void main() {
     await first.waitForPendingPersistence();
 
     expect(first.latestSavedState.proofImagePath, 'station_images/proof.jpg');
-    expect(first.visibleConfirmation, contains('photo linked'));
+    expect(first.visibleConfirmation, contains('Proof photo attached'));
 
     await first.uploadMedia('line-board');
     await first.waitForPendingPersistence();
@@ -412,6 +420,45 @@ void main() {
     expect(restored.primaryUserMediaFor('line-board')?.assetPath,
         'station_images/replacement.jpg');
     expect(restored.visibleConfirmation, contains('Restored B-104 Ready'));
+  });
+
+  test('export proof card records Photos album feedback', () async {
+    final pickedFile = File(
+      '${Directory.systemTemp.path}/prepline-save-to-photos-proof.jpg',
+    )..writeAsBytesSync([5, 6, 7, 8]);
+    final mediaStore = _FakeMediaStore();
+    final controller = PrepBoardController(
+      mediaStore: mediaStore,
+      permissionService: _AlwaysAllowedPermissionService(),
+      imagePicker: _FakeImagePicker(XFile(pickedFile.path)),
+    );
+    addTearDown(controller.dispose);
+    await controller.ready;
+    await controller.uploadMedia('batch-detail');
+    await controller.waitForPendingPersistence();
+    final media = controller.primaryUserMediaFor('batch-detail')!;
+
+    final exported = await controller.exportProofCardToAlbum(media.id);
+
+    expect(exported, isTrue);
+    expect(mediaStore.exportedProofCards, hasLength(1));
+    expect(
+      mediaStore.exportedProofCards.single,
+      containsPair('photoRelativePath', 'station_images/proof.jpg'),
+    );
+    expect(
+        mediaStore.exportedProofCards.single, containsPair('batchId', 'B-104'));
+    expect(
+      mediaStore.exportedProofCards.single,
+      containsPair('batchName', 'Roast chicken trays'),
+    );
+    expect(
+        mediaStore.exportedProofCards.single, containsPair('state', 'Cooking'));
+    expect(controller.activeAlbumExportMediaId, isNull);
+    expect(
+      controller.mediaReadback,
+      'Exported proof card to Photos album: PrepLine Pulse.',
+    );
   });
 
   testWidgets('asset image records show upload-required placeholder', (
@@ -534,6 +581,7 @@ class _FakeMediaStore extends PreplineDocumentMediaStore {
 
   final Queue<String> _savedPaths;
   final List<String> deletedPaths = [];
+  final List<Map<String, String>> exportedProofCards = [];
 
   @override
   Future<String> saveBytes({
@@ -558,5 +606,25 @@ class _FakeMediaStore extends PreplineDocumentMediaStore {
   }
 
   @override
-  Future<void> saveRelativePathToGallery(String relativePath) async {}
+  Future<void> exportProofCardToGallery({
+    required String photoRelativePath,
+    required String batchId,
+    required String batchName,
+    required String station,
+    required String state,
+    required String owner,
+    required String note,
+    required String exportedAt,
+  }) async {
+    exportedProofCards.add({
+      'photoRelativePath': photoRelativePath,
+      'batchId': batchId,
+      'batchName': batchName,
+      'station': station,
+      'state': state,
+      'owner': owner,
+      'note': note,
+      'exportedAt': exportedAt,
+    });
+  }
 }

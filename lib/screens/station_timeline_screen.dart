@@ -16,6 +16,7 @@ class StationTimelineScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final controller = PrepBoardScope.of(context);
     final logs = controller.logs.reversed.toList();
+    final proofLogs = logs.where((log) => log.hasProofImage).toList();
 
     return OperationalPage(
       pageId: 'station-timeline',
@@ -23,13 +24,15 @@ class StationTimelineScreen extends StatelessWidget {
       mediaTarget: 'station-timeline',
       children: [
         InfoCard(
-          title: 'Recent saves',
+          title: 'Proof records',
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              if (logs.isEmpty)
-                const Text('Save a batch state to start the timeline.'),
-              for (final log in logs.take(4)) _TimelineEntry(log: log),
+              if (proofLogs.isEmpty)
+                const Text(
+                  'Upload a proof photo, then save a batch state to keep it here.',
+                ),
+              for (final log in proofLogs.take(4)) _TimelineEntry(log: log),
             ],
           ),
         ),
@@ -49,18 +52,16 @@ class _TimelineEntry extends StatelessWidget {
       padding: const EdgeInsets.only(bottom: 12),
       child: DecoratedBox(
         decoration: BoxDecoration(
-          border: Border(
-            left: BorderSide(
-              color: Theme.of(context).colorScheme.primary,
-              width: 3,
-            ),
-          ),
+          border: Border.all(color: Theme.of(context).dividerColor),
+          borderRadius: BorderRadius.circular(8),
         ),
         child: Padding(
-          padding: const EdgeInsets.only(left: 12),
+          padding: const EdgeInsets.all(12),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+              SavedProofThumbnail(log: log),
+              const SizedBox(height: 10),
               Wrap(
                 spacing: 8,
                 runSpacing: 8,
@@ -76,8 +77,8 @@ class _TimelineEntry extends StatelessWidget {
                 '${log.batchId} ${log.batchName}',
                 style: Theme.of(context).textTheme.titleSmall,
               ),
-              const SizedBox(height: 8),
-              SavedProofThumbnail(log: log),
+              const SizedBox(height: 4),
+              Text(log.note),
             ],
           ),
         ),
