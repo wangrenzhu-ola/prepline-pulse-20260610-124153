@@ -43,7 +43,7 @@ void main() {
     );
     expect(find.text('Line Board'), findsWidgets);
 
-    final boardList = tester.widget<ListView>(
+    final boardListRect = tester.getRect(
       find
           .descendant(
             of: find.byType(LineBoardScreen),
@@ -51,7 +51,10 @@ void main() {
           )
           .first,
     );
-    expect(boardList.padding!.resolve(TextDirection.ltr).bottom, 132);
+    final navigationSurfaceRect = tester.getRect(
+      find.byKey(const Key('shell-bottom-nav-surface')),
+    );
+    expect(boardListRect.bottom, lessThanOrEqualTo(navigationSurfaceRect.top));
   });
 
   testWidgets(

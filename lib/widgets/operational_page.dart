@@ -18,9 +18,6 @@ class OperationalPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final reservesBottomNavigation = MediaQuery.sizeOf(context).width < 760
-        ? 132.0
-        : 28.0;
     return Scaffold(
       appBar: AppBar(
         title: Text(title),
@@ -29,7 +26,7 @@ class OperationalPage extends StatelessWidget {
       ),
       body: SafeArea(
         child: ListView(
-          padding: EdgeInsets.fromLTRB(16, 12, 16, reservesBottomNavigation),
+          padding: const EdgeInsets.fromLTRB(16, 12, 16, 28),
           children: [
             Semantics(
               label: 'page_id source marker: $pageId',
