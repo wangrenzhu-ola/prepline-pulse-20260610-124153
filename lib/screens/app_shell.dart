@@ -159,65 +159,54 @@ class _AppShellState extends State<AppShell> {
     final background = Theme.of(context).scaffoldBackgroundColor;
     return Scaffold(
       backgroundColor: background,
-      extendBody: true,
-      body: Stack(
-        fit: StackFit.expand,
-        children: [
-          Positioned.fill(child: body),
-          Positioned(
-            left: 0,
-            right: 0,
-            bottom: 0,
-            child: DecoratedBox(
-              key: const Key('shell-bottom-nav-surface'),
-              decoration: BoxDecoration(
-                color: background.withOpacity(.96),
-                border: Border(
-                  top: BorderSide(
-                    color: Theme.of(
-                      context,
-                    ).colorScheme.primary.withOpacity(.18),
-                  ),
-                ),
-              ),
-              child: SafeArea(
-                top: false,
-                child: NavigationBar(
-                  selectedIndex: index > 4 ? 4 : index,
-                  onDestinationSelected: (value) {
-                    if (value == 4) {
-                      _showMoreMenu(context);
-                      return;
-                    }
-                    setState(() => index = value);
-                  },
-                  destinations: const [
-                    NavigationDestination(
-                      icon: Icon(Icons.dashboard_outlined),
-                      label: 'Board',
-                    ),
-                    NavigationDestination(
-                      icon: Icon(Icons.receipt_long_outlined),
-                      label: 'Batch',
-                    ),
-                    NavigationDestination(
-                      icon: Icon(Icons.edit_note_outlined),
-                      label: 'Entry',
-                    ),
-                    NavigationDestination(
-                      icon: Icon(Icons.timer_outlined),
-                      label: 'Clock',
-                    ),
-                    NavigationDestination(
-                      icon: Icon(Icons.more_horiz),
-                      label: 'More',
-                    ),
-                  ],
-                ),
-              ),
+      body: body,
+      bottomNavigationBar: DecoratedBox(
+        key: const Key('shell-bottom-nav-surface'),
+        decoration: BoxDecoration(
+          color: background,
+          border: Border(
+            top: BorderSide(
+              color: Theme.of(
+                context,
+              ).colorScheme.primary.withOpacity(.18),
             ),
           ),
-        ],
+        ),
+        child: SafeArea(
+          top: false,
+          child: NavigationBar(
+            selectedIndex: index > 4 ? 4 : index,
+            onDestinationSelected: (value) {
+              if (value == 4) {
+                _showMoreMenu(context);
+                return;
+              }
+              setState(() => index = value);
+            },
+            destinations: const [
+              NavigationDestination(
+                icon: Icon(Icons.dashboard_outlined),
+                label: 'Board',
+              ),
+              NavigationDestination(
+                icon: Icon(Icons.receipt_long_outlined),
+                label: 'Batch',
+              ),
+              NavigationDestination(
+                icon: Icon(Icons.edit_note_outlined),
+                label: 'Entry',
+              ),
+              NavigationDestination(
+                icon: Icon(Icons.timer_outlined),
+                label: 'Clock',
+              ),
+              NavigationDestination(
+                icon: Icon(Icons.more_horiz),
+                label: 'More',
+              ),
+            ],
+          ),
+        ),
       ),
       drawer: Drawer(
         child: SafeArea(

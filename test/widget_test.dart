@@ -6,6 +6,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:app_20260610_124153/data/prep_seed_data.dart';
 import 'package:app_20260610_124153/models/prep_models.dart';
 import 'package:app_20260610_124153/screens/app_shell.dart';
+import 'package:app_20260610_124153/screens/line_board_screen.dart';
 import 'package:app_20260610_124153/screens/service_clock_screen.dart';
 import 'package:app_20260610_124153/screens/state_entry_screen.dart';
 import 'package:app_20260610_124153/state/prep_board_controller.dart';
@@ -44,6 +45,26 @@ void main() {
       852,
     );
     expect(find.text('Line Board'), findsWidgets);
+
+    final boardListRect = tester.getRect(
+      find
+          .descendant(
+            of: find.byType(LineBoardScreen),
+            matching: find.byType(ListView),
+          )
+          .first,
+    );
+    final navigationSurfaceRect = tester.getRect(
+      find.byKey(const Key('shell-bottom-nav-surface')),
+    );
+    expect(boardListRect.bottom, lessThanOrEqualTo(navigationSurfaceRect.top));
+
+    final navigationSurface = tester.widget<DecoratedBox>(
+      find.byKey(const Key('shell-bottom-nav-surface')),
+    );
+    final surfaceDecoration = navigationSurface.decoration as BoxDecoration;
+    expect(surfaceDecoration.color, isNotNull);
+    expect(surfaceDecoration.color!.opacity, 1);
   });
 
   testWidgets(
