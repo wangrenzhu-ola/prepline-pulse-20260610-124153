@@ -16,19 +16,19 @@
 | spend_point | Save state spends exactly 10 units and every save surface shows the cost before the button | passed | `lib/state/prep_board_controller.dart`; `lib/widgets/status_widgets.dart`; `test/widget_test.dart` |
 | state_local_records | Save state writes batch, station, note, exception, media, and log records to local app storage | passed | `lib/services/prepline_state_store.dart`; `test/widget_test.dart` |
 | media_asset_visibility | Built-in `assets/images` are not rendered as UI photos | passed | `lib/widgets/media_widgets.dart`; `test/widget_test.dart`; simulator screenshot |
-| media_album_primary | Uploaded album photo becomes the primary proof image for Board, Batch, and Photos | passed | `lib/state/prep_board_controller.dart`; `lib/widgets/media_widgets.dart`; `flutter test` |
+| media_album_primary | Uploaded album photo becomes the tall primary proof image for Board, Batch, and Photos | passed | `lib/state/prep_board_controller.dart`; `lib/widgets/media_widgets.dart`; `flutter test` |
 | media_album_export | Export proof generates a proof card image from uploaded photo plus batch state and writes that generated card through the Photos album adapter | passed | `lib/state/prep_board_controller.dart`; `lib/services/prepline_document_media_store.dart`; `test/widget_test.dart`; `flutter test` |
-| media_save_link | Saved state records link the uploaded proof photo relative path and keep historical proof images after replacement | passed | `lib/state/prep_board_controller.dart`; `lib/widgets/media_widgets.dart`; `test/widget_test.dart` |
-| iap_catalog_visible | Store renders all 25 product identifiers from the full catalog | passed | `lib/screens/pulse_store_screen.dart`; `test/widget_test.dart` |
+| media_save_link | Saved state records link the uploaded proof photo relative path, keep historical proof images after replacement, and open the related batch from Photos | passed | `lib/state/prep_board_controller.dart`; `lib/widgets/media_widgets.dart`; `lib/screens/station_timeline_screen.dart`; `test/widget_test.dart` |
+| iap_catalog_internal | Internal catalog keeps all 25 product identifiers while Store cards hide IDs from customers | passed | `lib/screens/pulse_store_screen.dart`; `test/widget_test.dart` |
 
 ## Page Tests
 
 | Page | Scenario | Status | Evidence |
 | --- | --- | --- | --- |
-| board | Large uploaded user photo stays visible, while Save ready with photo is the primary record action, export is secondary, the 10-credit spend is shown before save, and current owner/station are editable | passed | `lib/screens/line_board_screen.dart`; `lib/widgets/batch_setup_fields.dart`; `lib/widgets/media_widgets.dart`; `lib/widgets/status_widgets.dart`; `flutter test` |
-| batch | Batch page promotes the same proof image, editable current-batch setup, primary state save, pre-save cost notice, and concise recent saved proof records | passed | `lib/screens/batch_detail_screen.dart`; `lib/widgets/batch_setup_fields.dart`; `lib/widgets/status_widgets.dart`; `flutter analyze`; `flutter test` |
-| photos | Photos page focuses on saved proof records instead of a generic timeline list | passed | `lib/screens/station_timeline_screen.dart`; `flutter analyze`; `flutter test` |
-| store | All 25 product cards render, settings action is absent, and both policy links are present | passed | `lib/screens/pulse_store_screen.dart`; `test/widget_test.dart` |
+| board | Large uploaded user photo uses a taller primary area, while Save ready with photo is the primary record action, export is secondary, the 10-credit spend is shown before save, and current owner/station are editable | passed | `lib/screens/line_board_screen.dart`; `lib/widgets/batch_setup_fields.dart`; `lib/widgets/media_widgets.dart`; `lib/widgets/status_widgets.dart`; `flutter test` |
+| batch | Batch page promotes the same taller proof image, editable current-batch setup, primary state save, pre-save cost notice, and concise recent saved proof records | passed | `lib/screens/batch_detail_screen.dart`; `lib/widgets/batch_setup_fields.dart`; `lib/widgets/status_widgets.dart`; `flutter analyze`; `flutter test` |
+| photos | Photos page keeps the same taller proof image and makes saved proof cards tappable into Batch Detail instead of a generic timeline list | passed | `lib/screens/station_timeline_screen.dart`; `flutter analyze`; `flutter test` |
+| store | All 25 product cards render without product IDs, settings action is absent, and both policy links are present | passed | `lib/screens/pulse_store_screen.dart`; `test/widget_test.dart` |
 | protocols | User agreement and privacy policy open from Store and Settings via in-app WebView | passed | `lib/screens/protocol_screen.dart`; `lib/screens/pulse_store_screen.dart`; `lib/screens/settings_screen.dart`; `flutter build ios --simulator` |
 
 ## Linked Tests

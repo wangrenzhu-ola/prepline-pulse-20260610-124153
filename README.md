@@ -44,13 +44,17 @@ the large image area shows an upload empty state instead.
 - Do not show a settings button on the Store page, but keep User Agreement and
   Privacy Policy reachable from Store and Settings.
 - Keep IAP initialization lazy behind the Store flow.
-- Keep purchase success, failure, pending, and preparation feedback free of
-  internal product IDs; product IDs may appear only on catalog/admin-style
-  product cards.
+- Keep all user-facing Store copy, product cards, purchase preparation,
+  purchase success, and purchase failure feedback free of internal product IDs;
+  product IDs belong only in the Dart catalog, StoreKit config, and tests.
 - Treat the current batch setup as editable app state, not fixed sample copy:
   owner and station edits must update the selected batch before save/export.
 - Persist media with relative paths and rebuild full paths at render/export time.
 - Link the uploaded proof photo to each state-save record when a photo exists.
+- Reserve a tall primary proof-photo area on Board, Batch, and Photos so
+  uploaded images read as the main workflow, not a short banner.
+- Make Photos proof records tappable so saved photo cards can open the related
+  batch detail instead of behaving like static decoration.
 - Keep proof-card export visually secondary to the state-save action, because
   export does not create an app record.
 - Show the 10-credit cost and post-save balance directly before every

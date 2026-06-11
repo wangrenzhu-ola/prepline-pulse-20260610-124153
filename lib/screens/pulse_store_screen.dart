@@ -158,7 +158,7 @@ class _PulseProductCard extends StatelessWidget {
                       style: Theme.of(context).textTheme.titleMedium,
                     ),
                     const SizedBox(height: 4),
-                    Text('${product.referencePrice}  #${product.id}'),
+                    Text(product.referencePrice),
                   ],
                 ),
               ),

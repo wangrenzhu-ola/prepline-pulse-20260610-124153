@@ -24,8 +24,10 @@ class PrimaryProofHero extends StatelessWidget {
     final media = controller.primaryUserMediaFor(attachedTo);
     final exporting =
         media != null && controller.activeAlbumExportMediaId == media.id;
-    final height = (MediaQuery.sizeOf(context).height * .36)
-        .clamp(250.0, 340.0)
+    final viewport = MediaQuery.sizeOf(context);
+    final compact = viewport.width < 600;
+    final height = (viewport.height * (compact ? .50 : .42))
+        .clamp(compact ? 380.0 : 340.0, compact ? 520.0 : 500.0)
         .toDouble();
     return Container(
       key: Key('primary-proof-hero-$attachedTo'),
@@ -265,8 +267,12 @@ class SavedProofThumbnail extends StatelessWidget {
       future: controller.fullMediaPath(record),
       builder: (context, snapshot) {
         final path = snapshot.data;
-        final height = compact ? 56.0 : 108.0;
+        final viewport = MediaQuery.sizeOf(context);
+        final height = compact
+            ? 56.0
+            : (viewport.height * .24).clamp(180.0, 260.0).toDouble();
         return ClipRRect(
+          key: Key('saved-proof-thumbnail-${log.savedAt}-${log.batchId}'),
           borderRadius: BorderRadius.circular(8),
           child: path == null
               ? SizedBox(

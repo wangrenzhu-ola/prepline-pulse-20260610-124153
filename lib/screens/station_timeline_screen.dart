@@ -5,6 +5,7 @@ import '../state/prep_board_controller.dart';
 import '../widgets/media_widgets.dart';
 import '../widgets/operational_page.dart';
 import '../widgets/prep_widgets.dart';
+import 'batch_detail_screen.dart';
 
 // page_id: station-timeline | route_name: /station-timeline | widget_class: StationTimelineScreen | state_key: stationTimelineState
 class StationTimelineScreen extends StatelessWidget {
@@ -48,38 +49,51 @@ class _TimelineEntry extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final controller = PrepBoardScope.of(context);
+    final radius = BorderRadius.circular(8);
     return Padding(
       padding: const EdgeInsets.only(bottom: 12),
-      child: DecoratedBox(
-        decoration: BoxDecoration(
-          border: Border.all(color: Theme.of(context).dividerColor),
-          borderRadius: BorderRadius.circular(8),
-        ),
-        child: Padding(
-          padding: const EdgeInsets.all(12),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              SavedProofThumbnail(log: log),
-              const SizedBox(height: 10),
-              Wrap(
-                spacing: 8,
-                runSpacing: 8,
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          key: Key('proof-record-card-${log.savedAt}-${log.batchId}'),
+          borderRadius: radius,
+          onTap: () {
+            controller.selectBatch(log.batchId);
+            Navigator.pushNamed(context, BatchDetailScreen.routeName);
+          },
+          child: Ink(
+            decoration: BoxDecoration(
+              border: Border.all(color: Theme.of(context).dividerColor),
+              borderRadius: radius,
+            ),
+            child: Padding(
+              padding: const EdgeInsets.all(12),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  StatusChip(log.savedAt),
-                  StatusChip(log.station),
-                  StatusChip(log.state),
-                  StatusChip('Owner ${log.owner}'),
+                  SavedProofThumbnail(log: log),
+                  const SizedBox(height: 10),
+                  Wrap(
+                    spacing: 8,
+                    runSpacing: 8,
+                    children: [
+                      StatusChip(log.savedAt),
+                      StatusChip(log.station),
+                      StatusChip(log.state),
+                      StatusChip('Owner ${log.owner}'),
+                    ],
+                  ),
+                  const SizedBox(height: 6),
+                  Text(
+                    '${log.batchId} ${log.batchName}',
+                    style: Theme.of(context).textTheme.titleSmall,
+                  ),
+                  const SizedBox(height: 4),
+                  Text(log.note),
                 ],
               ),
-              const SizedBox(height: 6),
-              Text(
-                '${log.batchId} ${log.batchName}',
-                style: Theme.of(context).textTheme.titleSmall,
-              ),
-              const SizedBox(height: 4),
-              Text(log.note),
-            ],
+            ),
           ),
         ),
       ),

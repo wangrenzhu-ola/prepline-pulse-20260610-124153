@@ -9,7 +9,7 @@
 ## Findings
 
 - passed: Core bottom navigation now has 4 tabs: Board, Batch, Photos, Store; 10 route contracts remain in `pageContracts`.
-- passed: Board, Batch, and Photos all render large user-photo surfaces; upload uses relative-path app storage and the primary image exposes system album export.
+- passed: Board, Batch, and Photos all render taller user-photo surfaces; upload uses relative-path app storage, the primary image exposes system album export, and Photos proof cards are tappable into Batch Detail.
 - passed: Store renders all 25 product cards with a responsive single-column mobile grid and three-column wide layout.
 - passed: Store and Settings expose in-app User Agreement and Privacy Policy WebView entries.
 - passed: Board station cards no longer overflow on the iOS simulator viewport, and the save action now states what is recorded.

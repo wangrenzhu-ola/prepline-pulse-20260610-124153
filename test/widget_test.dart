@@ -9,19 +9,23 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import 'package:telta/data/prep_repository.dart';
 import 'package:telta/data/prep_seed_data.dart';
 import 'package:telta/models/prep_models.dart';
 import 'package:telta/models/pulse_store_models.dart';
 import 'package:telta/screens/app_shell.dart';
+import 'package:telta/screens/batch_detail_screen.dart';
 import 'package:telta/screens/line_board_screen.dart';
 import 'package:telta/screens/protocol_screen.dart';
 import 'package:telta/screens/pulse_store_screen.dart';
 import 'package:telta/screens/service_clock_screen.dart';
 import 'package:telta/screens/settings_screen.dart';
+import 'package:telta/screens/station_timeline_screen.dart';
 import 'package:telta/screens/state_entry_screen.dart';
 import 'package:telta/services/prepline_document_media_store.dart';
 import 'package:telta/services/prepline_permission_service.dart';
 import 'package:telta/services/prepline_purchase_service.dart';
+import 'package:telta/services/prepline_state_store.dart';
 import 'package:telta/state/prep_board_controller.dart';
 import 'package:telta/theme/prep_theme.dart';
 import 'package:telta/widgets/media_widgets.dart';
@@ -374,6 +378,51 @@ void main() {
     );
   });
 
+  testWidgets('primary proof photo gets tall space on core pages', (
+    tester,
+  ) async {
+    tester.view.devicePixelRatio = 1;
+    tester.view.physicalSize = const Size(393, 852);
+    addTearDown(() {
+      tester.view.resetDevicePixelRatio();
+      tester.view.resetPhysicalSize();
+    });
+
+    await tester.pumpWidget(const TeltaApp());
+    await tester.pumpAndSettle();
+
+    expect(
+      tester.getSize(find.byKey(const Key('primary-proof-hero-line-board'))),
+      const Size(361, 426),
+    );
+
+    await tester.tap(
+      find.descendant(
+        of: find.byType(NavigationBar),
+        matching: find.text('Batch'),
+      ),
+    );
+    await tester.pumpAndSettle();
+    expect(
+      tester.getSize(find.byKey(const Key('primary-proof-hero-batch-detail'))),
+      const Size(361, 426),
+    );
+
+    await tester.tap(
+      find.descendant(
+        of: find.byType(NavigationBar),
+        matching: find.text('Photos'),
+      ),
+    );
+    await tester.pumpAndSettle();
+    expect(
+      tester.getSize(
+        find.byKey(const Key('primary-proof-hero-station-timeline')),
+      ),
+      const Size(361, 426),
+    );
+  });
+
   testWidgets(
       'board batch setup edits visible owner instead of fixed seed copy',
       (tester) async {
@@ -457,7 +506,8 @@ void main() {
     expect(find.byTooltip('Settings'), findsNothing);
     expect(find.byIcon(Icons.tune), findsNothing);
     expect(find.byKey(const Key('pulse-store-product-grid')), findsOneWidget);
-    expect(find.textContaining('#'), findsNWidgets(25));
+    expect(find.textContaining('#'), findsNothing);
+    expect(find.textContaining('850221000'), findsNothing);
 
     final storeScroll = find
         .descendant(
@@ -692,6 +742,87 @@ void main() {
     expect(restored.visibleConfirmation, contains('Restored B-104 Ready'));
   });
 
+  testWidgets('photos proof records are tall and open batch detail', (
+    tester,
+  ) async {
+    tester.view.devicePixelRatio = 1;
+    tester.view.physicalSize = const Size(393, 852);
+    addTearDown(() {
+      tester.view.resetDevicePixelRatio();
+      tester.view.resetPhysicalSize();
+    });
+
+    final proofFile = File(
+      '${Directory.systemTemp.path}/station_images/proof.jpg',
+    );
+    proofFile.parent.createSync(recursive: true);
+    proofFile.writeAsBytesSync(_transparentPngBytes);
+    final snapshot = const PrepRepository().loadLineBoard();
+    const proofLog = PrepLog(
+      batchId: 'B-118',
+      batchName: 'Avocado toast mise',
+      station: 'Cold bar',
+      state: 'Ready',
+      owner: 'Lena',
+      note: 'Photo record opened.',
+      savedAt: '17:22',
+      proofImagePath: 'station_images/proof.jpg',
+    );
+    final controller = PrepBoardController(
+      mediaStore: _FakeMediaStore(),
+      stateStore: _FakeStateStore(
+        PreplineSavedSession(
+          selectedBatchId: 'B-104',
+          batches: snapshot.batches,
+          stations: snapshot.stations,
+          logs: [...seedLogs, proofLog],
+          exceptions: seedExceptions,
+          media: const [
+            MediaRecord(
+              id: 'M-proof',
+              assetPath: 'station_images/proof.jpg',
+              label: 'Uploaded proof photo',
+              attachedTo: 'station-timeline',
+              storedInDocuments: true,
+            ),
+          ],
+        ),
+      ),
+    );
+    addTearDown(controller.dispose);
+    await controller.ready;
+
+    await tester.pumpWidget(
+      PrepBoardScope(
+        controller: controller,
+        child: MaterialApp(
+          routes: {
+            BatchDetailScreen.routeName: (_) => const BatchDetailScreen(),
+          },
+          home: const StationTimelineScreen(),
+        ),
+      ),
+    );
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 50));
+
+    final thumbnail = find.byKey(
+      const Key('saved-proof-thumbnail-17:22-B-118'),
+    );
+    expect(thumbnail, findsOneWidget);
+    expect(tester.getSize(thumbnail).height, greaterThanOrEqualTo(200));
+
+    await tester.tap(
+      find.byKey(const Key('proof-record-card-17:22-B-118')),
+    );
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 300));
+
+    expect(controller.selectedBatchId, 'B-118');
+    expect(find.byType(BatchDetailScreen), findsOneWidget);
+    expect(find.text('Batch Detail'), findsWidgets);
+  });
+
   test('export proof card records Photos album feedback', () async {
     final pickedFile = File(
       '${Directory.systemTemp.path}/prepline-save-to-photos-proof.jpg',
@@ -827,6 +958,35 @@ class _AlwaysAllowedPermissionService extends PreplinePermissionService {
   Future<bool> requestPhotoLibraryWrite() async => true;
 }
 
+class _FakeStateStore extends PreplineStateStore {
+  _FakeStateStore(this.session);
+
+  final PreplineSavedSession? session;
+  PreplineSavedSession? writtenSession;
+
+  @override
+  Future<PreplineSavedSession?> readSession() async => session;
+
+  @override
+  Future<void> writeSession({
+    required String selectedBatchId,
+    required List<PrepBatch> batches,
+    required List<StationStatus> stations,
+    required List<PrepLog> logs,
+    required List<PrepException> exceptions,
+    required List<MediaRecord> media,
+  }) async {
+    writtenSession = PreplineSavedSession(
+      selectedBatchId: selectedBatchId,
+      batches: batches,
+      stations: stations,
+      logs: logs,
+      exceptions: exceptions,
+      media: media,
+    );
+  }
+}
+
 class _FakePurchaseService extends PreplinePurchaseService {
   _FakePurchaseService(this.result)
       : super(
@@ -862,6 +1022,76 @@ class _FakeImagePicker extends ImagePicker {
     return file;
   }
 }
+
+final _transparentPngBytes = Uint8List.fromList(const [
+  0x89,
+  0x50,
+  0x4E,
+  0x47,
+  0x0D,
+  0x0A,
+  0x1A,
+  0x0A,
+  0x00,
+  0x00,
+  0x00,
+  0x0D,
+  0x49,
+  0x48,
+  0x44,
+  0x52,
+  0x00,
+  0x00,
+  0x00,
+  0x01,
+  0x00,
+  0x00,
+  0x00,
+  0x01,
+  0x08,
+  0x06,
+  0x00,
+  0x00,
+  0x00,
+  0x1F,
+  0x15,
+  0xC4,
+  0x89,
+  0x00,
+  0x00,
+  0x00,
+  0x0A,
+  0x49,
+  0x44,
+  0x41,
+  0x54,
+  0x78,
+  0x9C,
+  0x63,
+  0x00,
+  0x01,
+  0x00,
+  0x00,
+  0x05,
+  0x00,
+  0x01,
+  0x0D,
+  0x0A,
+  0x2D,
+  0xB4,
+  0x00,
+  0x00,
+  0x00,
+  0x00,
+  0x49,
+  0x45,
+  0x4E,
+  0x44,
+  0xAE,
+  0x42,
+  0x60,
+  0x82,
+]);
 
 class _FakeMediaStore extends PreplineDocumentMediaStore {
   _FakeMediaStore([List<String>? savedPaths])
