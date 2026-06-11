@@ -7,7 +7,6 @@ import '../widgets/media_widgets.dart';
 import '../widgets/operational_page.dart';
 import '../widgets/prep_widgets.dart';
 import '../widgets/status_widgets.dart';
-import 'batch_detail_detail_screen.dart';
 import 'state_entry_screen.dart' show StateEntryScreen;
 
 typedef BatchDetailActionContract = PrepBoardController;
@@ -71,7 +70,7 @@ class BatchDetailScreen extends StatelessWidget {
                 ],
               ),
             ),
-            const MediaRecordPanel(attachedTo: 'batch-detail', hero: false),
+            const MediaRecordPanel(attachedTo: 'batch-detail', hero: true),
             if (media.isNotEmpty) PrepMediaPreview(record: media.first),
             const SizedBox(height: 12),
             InfoCard(
@@ -136,14 +135,6 @@ class BatchDetailScreen extends StatelessWidget {
                         icon: const Icon(Icons.task_alt),
                         label: const Text('Resolve Blocked'),
                       ),
-                      OutlinedButton.icon(
-                        onPressed: () => Navigator.pushNamed(
-                          context,
-                          BatchDetailDetailScreen.routeName,
-                        ),
-                        icon: const Icon(Icons.fact_check_outlined),
-                        label: const Text('Audit Detail'),
-                      ),
                     ],
                   ),
                   const SizedBox(height: 10),
@@ -153,6 +144,8 @@ class BatchDetailScreen extends StatelessWidget {
                       key: const Key('batch-detail-save-readback'),
                       style: const TextStyle(color: PrepTheme.success),
                     ),
+                  const SizedBox(height: 8),
+                  const Text('Save State uses 10 prep credits.'),
                   if (controller.lastResolvedException != null)
                     Text(
                       controller.lastResolvedException!,

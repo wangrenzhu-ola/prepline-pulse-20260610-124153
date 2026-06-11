@@ -1,10 +1,11 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 
 import '../data/prep_seed_data.dart';
 import '../models/prep_models.dart';
 import '../screens/about_screen.dart';
 import '../screens/exception_queue_screen.dart';
-import '../screens/onboarding_screen.dart';
 import '../screens/settings_screen.dart';
 import '../screens/station_timeline_screen.dart';
 import '../state/prep_board_controller.dart';
@@ -29,12 +30,6 @@ class PrepScaffold extends StatelessWidget {
         title: const Text('PrepLine Pulse'),
         backgroundColor: PrepTheme.background,
         actions: [
-          IconButton(
-            tooltip: 'Onboarding',
-            onPressed: () =>
-                Navigator.pushNamed(context, OnboardingScreen.routeName),
-            icon: const Icon(Icons.school_outlined),
-          ),
           IconButton(
             tooltip: 'Settings',
             onPressed: () =>
@@ -105,7 +100,7 @@ class ContractHero extends StatelessWidget {
       child: Stack(
         children: [
           SizedBox(
-            height: MediaQuery.sizeOf(context).height * .28,
+            height: MediaQuery.sizeOf(context).height * .34,
             width: double.infinity,
             child: Image.asset(imageAsset, fit: BoxFit.cover),
           ),
@@ -229,13 +224,20 @@ class MediaRecordPanel extends StatelessWidget {
     return InfoCard(
       title: 'User media readback',
       trailing: TextButton.icon(
-        onPressed: () => controller.addMedia(attachedTo),
+        onPressed: () => controller.uploadMedia(attachedTo),
         icon: const Icon(Icons.add_photo_alternate_outlined),
-        label: const Text('Attach'),
+        label: const Text('Upload'),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          if (controller.mediaReadback != null) ...[
+            Text(
+              controller.mediaReadback!,
+              key: const Key('media-readback'),
+            ),
+            const SizedBox(height: 10),
+          ],
           SizedBox(
             height: hero ? 220 : 120,
             child: media.isEmpty
@@ -246,23 +248,7 @@ class MediaRecordPanel extends StatelessWidget {
                       final item = media[index];
                       return SizedBox(
                         width: hero ? 260 : 150,
-                        child: ClipRRect(
-                          borderRadius: BorderRadius.circular(13),
-                          child: Stack(
-                            fit: StackFit.expand,
-                            children: [
-                              Image.asset(item.assetPath, fit: BoxFit.cover),
-                              Align(
-                                alignment: Alignment.bottomLeft,
-                                child: Container(
-                                  color: Colors.black.withOpacity(.58),
-                                  padding: const EdgeInsets.all(8),
-                                  child: Text(item.label, maxLines: 2),
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
+                        child: _MediaTile(item: item),
                       );
                     },
                     separatorBuilder: (_, __) => const SizedBox(width: 10),
@@ -275,9 +261,18 @@ class MediaRecordPanel extends StatelessWidget {
             children: [
               for (final item in media.take(1)) ...[
                 OutlinedButton.icon(
-                  onPressed: () => controller.replaceMedia(item.id),
+                  onPressed: item.storedInDocuments
+                      ? null
+                      : () => controller.replaceMedia(item.id),
                   icon: const Icon(Icons.change_circle_outlined),
                   label: const Text('Replace'),
+                ),
+                OutlinedButton.icon(
+                  onPressed: item.storedInDocuments
+                      ? () => controller.saveMediaToAlbum(item.id)
+                      : null,
+                  icon: const Icon(Icons.photo_library_outlined),
+                  label: const Text('Save album'),
                 ),
                 OutlinedButton.icon(
                   onPressed: () => controller.deleteMedia(item.id),
@@ -286,6 +281,54 @@ class MediaRecordPanel extends StatelessWidget {
                 ),
               ],
             ],
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _MediaTile extends StatelessWidget {
+  const _MediaTile({required this.item});
+
+  final MediaRecord item;
+
+  @override
+  Widget build(BuildContext context) {
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(13),
+      child: Stack(
+        fit: StackFit.expand,
+        children: [
+          if (item.storedInDocuments)
+            FutureBuilder<String>(
+              future: PrepBoardScope.of(context).fullMediaPath(item),
+              builder: (context, snapshot) {
+                if (!snapshot.hasData) {
+                  return const Center(
+                    child: CircularProgressIndicator(strokeWidth: 2),
+                  );
+                }
+                return Image.file(
+                  File(snapshot.data!),
+                  fit: BoxFit.cover,
+                  errorBuilder: (context, error, stackTrace) =>
+                      const ColoredBox(
+                    color: PrepTheme.elevated,
+                    child: Icon(Icons.broken_image_outlined),
+                  ),
+                );
+              },
+            )
+          else
+            Image.asset(item.assetPath, fit: BoxFit.cover),
+          Align(
+            alignment: Alignment.bottomLeft,
+            child: Container(
+              color: Colors.black.withOpacity(.58),
+              padding: const EdgeInsets.all(8),
+              child: Text(item.label, maxLines: 2),
+            ),
           ),
         ],
       ),

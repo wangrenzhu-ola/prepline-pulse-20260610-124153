@@ -1,0 +1,5 @@
+{"event":"task_started","skill_names":["autobuya-ios-compliance","setup-iap"],"message":"Initialized compliance and IAP planning artifacts before implementation."}
+{"event":"task_completed","skill_name":"autobuya-ios-compliance","message":"Implemented ATT, permission keys, protocol WebView, relative media storage, upload, and album export."}
+{"event":"task_completed","skill_name":"setup-iap","message":"Implemented 27-product Store, lazy IAP service, idempotent credit ledger, global balance entry, and fixed 10-credit spend point."}
+{"event":"test_passed","verification_skill_names":["autobuya-ios-compliance","setup-iap"],"commands":["flutter analyze","flutter test","flutter build ios --simulator"],"message":"Static analysis, tests, and iOS simulator build passed."}
+{"event":"tracker_synced","verification_skill_names":["autobuya-ios-compliance","setup-iap"],"message":"Compliance tracker, IAP tracker, test matrix, feature coverage, and layout audit updated."}

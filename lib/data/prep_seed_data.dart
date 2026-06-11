@@ -121,26 +121,22 @@ const pageContracts = <PageContract>[
       ],
       layer: 'primary'),
   PageContract(
+      pageId: 'pulse-store',
+      routeName: '/pulse-store',
+      widgetClass: 'PulseStoreScreen',
+      stateKey: 'pulseStoreState',
+      title: 'Store',
+      purpose: 'Buy prep credits for verified save actions.',
+      mustShow: ['balance', 'product grid', 'purchase status'],
+      layer: 'primary'),
+  PageContract(
       pageId: 'settings',
       routeName: '/settings',
       widgetClass: 'SettingsScreen',
       stateKey: 'settingsState',
       title: 'Settings',
       purpose: 'User preferences and app configuration.',
-      mustShow: [
-        'quiet alerts',
-        'station preference',
-        'service window default'
-      ],
-      layer: 'system'),
-  PageContract(
-      pageId: 'onboarding',
-      routeName: '/onboarding',
-      widgetClass: 'OnboardingScreen',
-      stateKey: 'onboardingState',
-      title: 'Onboarding',
-      purpose: 'First-time guide for prep leads.',
-      mustShow: ['value proposition', 'first saved state', 'review history'],
+      mustShow: ['quiet alerts', 'station preference', 'protocol entries'],
       layer: 'system'),
   PageContract(
       pageId: 'about',
@@ -151,33 +147,6 @@ const pageContracts = <PageContract>[
       purpose: 'App information, support, and legal.',
       mustShow: ['app information', 'support', 'legal'],
       layer: 'system'),
-  PageContract(
-      pageId: 'line-board_detail',
-      routeName: '/line-board-detail',
-      widgetClass: 'LineBoardDetailScreen',
-      stateKey: 'lineBoardDetailState',
-      title: 'Line Board Detail',
-      purpose: 'Detailed board progress and station pressure.',
-      mustShow: ['stepper progress', 'station pressure', 'latest log'],
-      layer: 'secondary'),
-  PageContract(
-      pageId: 'batch-detail_detail',
-      routeName: '/batch-detail-detail',
-      widgetClass: 'BatchDetailDetailScreen',
-      stateKey: 'batchDetailDetailState',
-      title: 'Batch Detail Audit',
-      purpose: 'Detailed audit trail for the selected batch.',
-      mustShow: ['stepper progress', 'history ledger', 'resolution status'],
-      layer: 'secondary'),
-  PageContract(
-      pageId: 'state-entry_detail',
-      routeName: '/state-entry-detail',
-      widgetClass: 'StateEntryDetailScreen',
-      stateKey: 'stateEntryDetailState',
-      title: 'State Entry Detail',
-      purpose: 'Detailed saved-state readback and next action.',
-      mustShow: ['stepper progress', 'saved confirmation', 'next action'],
-      layer: 'secondary'),
 ];
 
 const seedBatches = <PrepBatch>[

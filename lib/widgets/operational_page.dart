@@ -94,7 +94,7 @@ class _OperationalHero extends StatelessWidget {
         child: Stack(
           children: [
             SizedBox(
-              height: 150,
+              height: 220,
               width: double.infinity,
               child: Image.asset(assetPath, fit: BoxFit.cover),
             ),

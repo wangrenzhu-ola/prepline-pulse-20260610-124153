@@ -1,11 +1,30 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
+import 'package:path/path.dart' as path;
 
 import '../data/prep_repository.dart';
 import '../data/prep_seed_data.dart';
 import '../models/prep_models.dart';
+import '../models/pulse_store_models.dart';
+import '../services/prepline_document_media_store.dart';
+import '../services/prepline_permission_service.dart';
+import '../services/prepline_purchase_service.dart';
 
 class PrepBoardController extends ChangeNotifier {
-  PrepBoardController({PrepRepository repository = const PrepRepository()}) {
+  PrepBoardController({
+    PrepRepository repository = const PrepRepository(),
+    PreplineDocumentMediaStore? mediaStore,
+    PreplinePermissionService? permissionService,
+    PulseWalletLedger? walletLedger,
+    PreplinePurchaseService? purchaseService,
+    ImagePicker? imagePicker,
+  })  : _mediaStore = mediaStore ?? PreplineDocumentMediaStore(),
+        _permissionService = permissionService ?? PreplinePermissionService(),
+        _walletLedger = walletLedger ?? PulseWalletLedger(),
+        _purchaseService = purchaseService,
+        _imagePicker = imagePicker ?? ImagePicker() {
     _snapshot = repository.loadLineBoard();
     _batches = List<PrepBatch>.from(_snapshot.batches);
     _stations = List<StationStatus>.from(_snapshot.stations);
@@ -32,8 +51,14 @@ class PrepBoardController extends ChangeNotifier {
       ),
     ];
     _latestSavedState = _logs.last;
+    _loadPulseCredits();
   }
 
+  final PreplineDocumentMediaStore _mediaStore;
+  final PreplinePermissionService _permissionService;
+  final PulseWalletLedger _walletLedger;
+  PreplinePurchaseService? _purchaseService;
+  final ImagePicker _imagePicker;
   late final LineBoardSnapshot _snapshot;
   late final List<PrepBatch> _batches;
   late final List<StationStatus> _stations;
@@ -46,6 +71,10 @@ class PrepBoardController extends ChangeNotifier {
   String visibleConfirmation = 'Ready for first station update.';
   String? lastConfirmation;
   String? lastResolvedException;
+  String? mediaReadback;
+  String? storeReadback;
+  String? activePurchaseProductId;
+  int pulseCredits = PulseWalletLedger.initialBalance;
 
   String get pageId => _snapshot.pageId;
   ServiceWindow get serviceWindow => _snapshot.serviceWindow;
@@ -63,6 +92,7 @@ class PrepBoardController extends ChangeNotifier {
 
   int get blockedBatchCount => _batches.where((batch) => batch.blocked).length;
   int get blockedCount => _exceptions.where((item) => !item.resolved).length;
+  bool get storeBusy => activePurchaseProductId != null;
 
   PrepBatch get selectedBatch =>
       _batches.firstWhere((batch) => batch.id == selectedBatchId);
@@ -78,15 +108,24 @@ class PrepBoardController extends ChangeNotifier {
     notifyListeners();
   }
 
-  void saveState({
+  bool saveState({
     String? station,
     String nextState = 'Ready for handoff',
     String? note,
   }) {
+    if (pulseCredits < PulseWalletLedger.stateSaveCost) {
+      visibleConfirmation =
+          'Need ${PulseWalletLedger.stateSaveCost} prep credits to save this update.';
+      storeReadback = 'Balance is too low for state save.';
+      notifyListeners();
+      return false;
+    }
     final index = _batches.indexWhere((batch) => batch.id == selectedBatchId);
     if (index == -1) {
-      return;
+      return false;
     }
+    pulseCredits -= PulseWalletLedger.stateSaveCost;
+    _walletLedger.writeBalance(pulseCredits);
     final current = _batches[index];
     final savedStation = station ?? current.station;
     final savedNote =
@@ -119,9 +158,10 @@ class PrepBoardController extends ChangeNotifier {
     _logs.add(_latestSavedState);
     _syncExceptionForSavedState(updated);
     visibleConfirmation =
-        'Saved ${updated.id} as ${updated.state} at ${_latestSavedState.savedAt}.';
+        'Saved ${updated.id} as ${updated.state} at ${_latestSavedState.savedAt}; ${PulseWalletLedger.stateSaveCost} credits used.';
     lastConfirmation = visibleConfirmation;
     notifyListeners();
+    return true;
   }
 
   void resolveBlocked(String batchId) {
@@ -192,6 +232,65 @@ class PrepBoardController extends ChangeNotifier {
     notifyListeners();
   }
 
+  Future<void> uploadMedia(String attachedTo) async {
+    final allowed = await _permissionService.requestPhotoLibraryRead();
+    if (!allowed) {
+      mediaReadback =
+          'Photo access is limited; the large image stays on the built-in proof.';
+      notifyListeners();
+      return;
+    }
+    final picked = await _imagePicker.pickImage(
+      source: ImageSource.gallery,
+      imageQuality: 88,
+      maxWidth: 2200,
+    );
+    if (picked == null) {
+      mediaReadback = 'Image upload cancelled.';
+      notifyListeners();
+      return;
+    }
+    final extension = path.extension(picked.name).isEmpty
+        ? 'jpg'
+        : path.extension(picked.name).replaceAll('.', '');
+    final relativePath = await _mediaStore.saveBytes(
+      bytes: await picked.readAsBytes(),
+      folder: 'station_images',
+      extension: extension,
+    );
+    _media.insert(
+      0,
+      MediaRecord(
+        id: 'M-${DateTime.now().microsecondsSinceEpoch}',
+        assetPath: relativePath,
+        label: 'Uploaded station proof',
+        attachedTo: attachedTo,
+        storedInDocuments: true,
+      ),
+    );
+    mediaReadback = 'Uploaded and stored $relativePath.';
+    notifyListeners();
+  }
+
+  Future<void> saveMediaToAlbum(String mediaId) async {
+    final media = _media.firstWhere((item) => item.id == mediaId);
+    if (!media.storedInDocuments) {
+      mediaReadback = 'Built-in proof images do not need album export.';
+      notifyListeners();
+      return;
+    }
+    final allowed = await _permissionService.requestPhotoLibraryWrite();
+    if (!allowed) {
+      mediaReadback =
+          'Album save is unavailable; the image remains safely in this app.';
+      notifyListeners();
+      return;
+    }
+    await _mediaStore.saveRelativePathToGallery(media.assetPath);
+    mediaReadback = 'Saved ${media.label} to the system photo album.';
+    notifyListeners();
+  }
+
   void replaceMedia(String mediaId) {
     final index = _media.indexWhere((media) => media.id == mediaId);
     if (index == -1) {
@@ -208,8 +307,62 @@ class PrepBoardController extends ChangeNotifier {
   }
 
   void deleteMedia(String mediaId) {
+    final existing = _media.where((media) => media.id == mediaId).toList();
+    for (final media in existing) {
+      if (media.storedInDocuments) {
+        _mediaStore.deleteRelativePath(media.assetPath);
+      }
+    }
     _media.removeWhere((media) => media.id == mediaId);
+    mediaReadback = 'Removed media $mediaId.';
     notifyListeners();
+  }
+
+  Future<void> purchasePulseProduct(PulseStoreProduct product) async {
+    activePurchaseProductId = product.id;
+    storeReadback = 'Preparing ${product.id}.';
+    notifyListeners();
+    final purchaseService = _purchaseService ??=
+        PreplinePurchaseService(walletLedger: _walletLedger);
+    final result = await purchaseService.buyProduct(product);
+    if (result.balance != null) {
+      pulseCredits = result.balance!;
+    } else {
+      pulseCredits = await _walletLedger.readBalance();
+    }
+    activePurchaseProductId = null;
+    storeReadback = result.message;
+    notifyListeners();
+  }
+
+  Future<void> addTestPurchaseDelivery({
+    required String deliveryKey,
+    required int amount,
+  }) async {
+    pulseCredits = await _walletLedger.addPurchaseOnce(
+      deliveryKey: deliveryKey,
+      amount: amount,
+    );
+    notifyListeners();
+  }
+
+  Future<String> fullMediaPath(MediaRecord media) async {
+    final file = await _mediaStore.rebuildFile(media.assetPath);
+    return file.path;
+  }
+
+  Future<void> _loadPulseCredits() async {
+    pulseCredits = await _walletLedger.readBalance();
+    notifyListeners();
+  }
+
+  @override
+  void dispose() {
+    final purchaseService = _purchaseService;
+    if (purchaseService != null) {
+      unawaited(purchaseService.dispose());
+    }
+    super.dispose();
   }
 
   void _syncExceptionForSavedState(PrepBatch batch) {

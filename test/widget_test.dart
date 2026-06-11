@@ -2,17 +2,25 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import 'package:app_20260610_124153/data/prep_seed_data.dart';
 import 'package:app_20260610_124153/models/prep_models.dart';
+import 'package:app_20260610_124153/models/pulse_store_models.dart';
 import 'package:app_20260610_124153/screens/app_shell.dart';
 import 'package:app_20260610_124153/screens/line_board_screen.dart';
 import 'package:app_20260610_124153/screens/service_clock_screen.dart';
 import 'package:app_20260610_124153/screens/state_entry_screen.dart';
+import 'package:app_20260610_124153/services/prepline_document_media_store.dart';
+import 'package:app_20260610_124153/services/prepline_purchase_service.dart';
 import 'package:app_20260610_124153/state/prep_board_controller.dart';
 import 'package:app_20260610_124153/widgets/media_widgets.dart';
 
 void main() {
+  setUp(() {
+    SharedPreferences.setMockInitialValues({});
+  });
+
   test('iOS metadata opts into the full-screen launch storyboard', () {
     final plist = File('ios/Runner/Info.plist').readAsStringSync();
 
@@ -20,6 +28,58 @@ void main() {
     expect(plist, contains('<string>LaunchScreen</string>'));
     expect(plist, contains('<key>CFBundleDisplayName</key>'));
     expect(plist, contains('<string>PrepLine Pulse</string>'));
+    expect(plist, contains('<key>NSUserTrackingUsageDescription</key>'));
+    expect(plist, contains('<key>NSCameraUsageDescription</key>'));
+    expect(plist, contains('<key>NSMicrophoneUsageDescription</key>'));
+    expect(plist, contains('<key>NSPhotoLibraryUsageDescription</key>'));
+    expect(plist, contains('<key>NSPhotoLibraryAddUsageDescription</key>'));
+  });
+
+  test('page contract stays within the simplified ten page surface', () {
+    expect(pageContracts, hasLength(10));
+    expect(pageContracts.map((contract) => contract.pageId), [
+      'line-board',
+      'batch-detail',
+      'state-entry',
+      'service-clock',
+      'station-timeline',
+      'exception-queue',
+      'prep-rules',
+      'pulse-store',
+      'settings',
+      'about',
+    ]);
+  });
+
+  test('store catalog keeps the 27 verbatim product identifiers', () {
+    expect(pulseStoreCatalog, hasLength(27));
+    expect(pulseStoreCatalog.first.id, '473900');
+    expect(pulseStoreCatalog.last.id, '473926');
+    expect(pulseStoreProductIds, containsAll(['473900', '473918', '473926']));
+  });
+
+  test('relative media paths reject absolute persisted storage', () {
+    final store = PreplineDocumentMediaStore();
+
+    expect(store.isRelativePath('station_images/proof.jpg'), isTrue);
+    expect(store.isRelativePath('/tmp/proof.jpg'), isFalse);
+    expect(store.isRelativePath('../proof.jpg'), isFalse);
+  });
+
+  test('purchase delivery is idempotent for the same delivery key', () async {
+    final controller = PrepBoardController();
+    addTearDown(controller.dispose);
+
+    await controller.addTestPurchaseDelivery(
+      deliveryKey: 'delivery-473900',
+      amount: 110,
+    );
+    await controller.addTestPurchaseDelivery(
+      deliveryKey: 'delivery-473900',
+      amount: 110,
+    );
+
+    expect(controller.pulseCredits, PulseWalletLedger.initialBalance + 110);
   });
 
   testWidgets('app shell fills the portrait viewport and pins navigation', (

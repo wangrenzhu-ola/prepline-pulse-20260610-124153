@@ -24,6 +24,16 @@
 	<string>????</string>
 	<key>CFBundleVersion</key>
 	<string>$(FLUTTER_BUILD_NUMBER)</string>
+	<key>NSCameraUsageDescription</key>
+	<string>PrepLine Pulse uses the camera when a prep lead captures station proof photos for batch handoff records.</string>
+	<key>NSMicrophoneUsageDescription</key>
+	<string>PrepLine Pulse can include short station audio context with prep proof capture when a team records a handoff note.</string>
+	<key>NSPhotoLibraryAddUsageDescription</key>
+	<string>PrepLine Pulse saves selected station proof images back to the photo library when a prep lead exports visible handoff evidence.</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>PrepLine Pulse reads selected library images so prep leads can attach station proof photos to batch and timeline records.</string>
+	<key>NSUserTrackingUsageDescription</key>
+	<string>PrepLine Pulse uses tracking permission to connect install and purchase attribution with anonymous prep workflow diagnostics, helping the team understand which service-window tools, media proof flows, and credit-pack surfaces need improvement. This permission supports app quality measurement and purchase reliability review without changing station records, batch notes, uploaded images, or saved operational history.</string>
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
 	<key>UIApplicationSceneManifest</key>

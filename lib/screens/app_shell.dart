@@ -3,16 +3,14 @@ import 'package:flutter/material.dart';
 import '../state/prep_board_controller.dart';
 import '../theme/app_theme.dart';
 import 'about_screen.dart';
-import 'batch_detail_detail_screen.dart';
 import 'batch_detail_screen.dart';
 import 'exception_queue_screen.dart';
-import 'line_board_detail_screen.dart';
 import 'line_board_screen.dart';
-import 'onboarding_screen.dart';
 import 'prep_rules_screen.dart';
+import 'protocol_screen.dart';
+import 'pulse_store_screen.dart';
 import 'service_clock_screen.dart';
 import 'settings_screen.dart';
-import 'state_entry_detail_screen.dart';
 import 'state_entry_screen.dart';
 import 'station_timeline_screen.dart';
 
@@ -55,14 +53,10 @@ class _PrepLinePulseAppState extends State<PrepLinePulseApp> {
           StationTimelineScreen.routeName: (_) => const StationTimelineScreen(),
           ExceptionQueueScreen.routeName: (_) => const ExceptionQueueScreen(),
           PrepRulesScreen.routeName: (_) => const PrepRulesScreen(),
+          PulseStoreScreen.routeName: (_) => const PulseStoreScreen(),
           SettingsScreen.routeName: (_) => const SettingsScreen(),
-          OnboardingScreen.routeName: (_) => const OnboardingScreen(),
           AboutScreen.routeName: (_) => const AboutScreen(),
-          LineBoardDetailScreen.routeName: (_) => const LineBoardDetailScreen(),
-          BatchDetailDetailScreen.routeName: (_) =>
-              const BatchDetailDetailScreen(),
-          StateEntryDetailScreen.routeName: (_) =>
-              const StateEntryDetailScreen(),
+          ProtocolScreen.routeName: (_) => const ProtocolScreen(),
         },
       ),
     );
@@ -89,20 +83,17 @@ class _AppShellState extends State<AppShell> {
     StationTimelineScreen(),
     ExceptionQueueScreen(),
     PrepRulesScreen(),
+    PulseStoreScreen(),
     SettingsScreen(),
-    OnboardingScreen(),
     AboutScreen(),
-    LineBoardDetailScreen(),
-    BatchDetailDetailScreen(),
-    StateEntryDetailScreen(),
   ];
 
   static const _moreDestinations = <_MoreDestination>[
     _MoreDestination('Station timeline', Icons.timeline_outlined, 4),
     _MoreDestination('Exception queue', Icons.report_problem_outlined, 5),
     _MoreDestination('Prep rules', Icons.rule_outlined, 6),
-    _MoreDestination('Settings', Icons.tune, 7),
-    _MoreDestination('Onboarding', Icons.school_outlined, 8),
+    _MoreDestination('Store', Icons.local_activity_outlined, 7),
+    _MoreDestination('Settings', Icons.tune, 8),
     _MoreDestination('About', Icons.info_outline, 9),
   ];
 
@@ -111,7 +102,7 @@ class _AppShellState extends State<AppShell> {
     final wide = MediaQuery.sizeOf(context).width >= 760;
     final body = IndexedStack(index: index, children: _screens);
     if (wide) {
-      final selectedRailIndex = index > 6 ? 0 : index;
+      final selectedRailIndex = index > 7 ? 0 : index;
       return Scaffold(
         body: Row(
           children: [
@@ -147,6 +138,10 @@ class _AppShellState extends State<AppShell> {
                 NavigationRailDestination(
                   icon: Icon(Icons.rule_outlined),
                   label: Text('Rules'),
+                ),
+                NavigationRailDestination(
+                  icon: Icon(Icons.local_activity_outlined),
+                  label: Text('Store'),
                 ),
               ],
             ),
@@ -226,11 +221,11 @@ class _AppShellState extends State<AppShell> {
                 onTap: () => setState(() => index = 6),
               ),
               _DrawerLink(
-                label: 'Settings',
+                label: 'Store',
                 onTap: () => setState(() => index = 7),
               ),
               _DrawerLink(
-                label: 'Onboarding',
+                label: 'Settings',
                 onTap: () => setState(() => index = 8),
               ),
               _DrawerLink(

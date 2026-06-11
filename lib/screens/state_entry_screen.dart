@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
 
 import '../models/prep_models.dart';
+import '../services/prepline_purchase_service.dart';
 import '../state/prep_board_controller.dart';
 import '../widgets/operational_page.dart' as operational;
-import 'state_entry_detail_screen.dart';
+import '../widgets/pulse_balance_button.dart';
 
 // page_id source marker: state-entry
 // page_id: state-entry | route_name: /state-entry | widget_class: StateEntryScreen | state_key: stateEntryState
@@ -139,6 +140,21 @@ class _StateEntryScreenState extends State<StateEntryScreen> {
           ),
         ),
         const SizedBox(height: 12),
+        _EntryCard(
+          title: 'Save cost',
+          child: Row(
+            children: [
+              Expanded(
+                child: Text(
+                  'Saving a verified state uses ${PulseWalletLedger.stateSaveCost} prep credits.',
+                  key: const Key('state-entry-spend-notice'),
+                ),
+              ),
+              const PulseBalanceButton(compact: true),
+            ],
+          ),
+        ),
+        const SizedBox(height: 12),
         FilledButton.icon(
           key: const Key('state-entry-save-button'),
           onPressed: () {
@@ -172,13 +188,6 @@ class _StateEntryScreenState extends State<StateEntryScreen> {
             '${latestSavedState.note}',
             key: const Key('state-entry-log-readback'),
           ),
-        ),
-        const SizedBox(height: 12),
-        OutlinedButton.icon(
-          onPressed: () =>
-              Navigator.pushNamed(context, StateEntryDetailScreen.routeName),
-          icon: const Icon(Icons.receipt_long_outlined),
-          label: const Text('Open saved-state detail'),
         ),
       ],
     );

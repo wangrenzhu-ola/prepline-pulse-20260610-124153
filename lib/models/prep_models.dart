@@ -188,10 +188,12 @@ class MediaRecord {
     required this.assetPath,
     required this.label,
     required this.attachedTo,
+    this.storedInDocuments = false,
   });
 
   final String id;
   final String assetPath;
   final String label;
   final String attachedTo;
+  final bool storedInDocuments;
 }

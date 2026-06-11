@@ -25,11 +25,6 @@ class StationTimelineScreen extends StatelessWidget {
       ...controller.batches.map((batch) => batch.station),
       ...controller.logs.map((log) => log.station),
     }.toList();
-    final states = {
-      'All states',
-      ...controller.batches.map((batch) => batch.state),
-      ...controller.logs.map((log) => log.state),
-    }.toList();
 
     return PrepScaffold(
       contract: pageContracts[4],
@@ -47,7 +42,6 @@ class StationTimelineScreen extends StatelessWidget {
                 children: [
                   const StatusChip('Today'),
                   for (final station in stations) StatusChip(station),
-                  for (final state in states) StatusChip(state),
                 ],
               ),
               const SizedBox(height: 10),
@@ -91,18 +85,6 @@ class StationTimelineScreen extends StatelessWidget {
                 const SizedBox(height: 10),
                 Text(controller.lastConfirmation!),
               ],
-            ],
-          ),
-        ),
-        InfoCard(
-          title: 'Owner badges',
-          child: Wrap(
-            spacing: 8,
-            runSpacing: 8,
-            children: [
-              for (final owner
-                  in controller.logs.map((log) => log.owner).toSet())
-                StatusChip('$owner owner'),
             ],
           ),
         ),
