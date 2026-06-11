@@ -58,7 +58,8 @@ class _PrepLinePulseAppState extends State<PrepLinePulseApp> {
             BatchDetailScreen.routeName: (_) => const BatchDetailScreen(),
             StateEntryScreen.routeName: (_) => const StateEntryScreen(),
             ServiceClockScreen.routeName: (_) => const ServiceClockScreen(),
-            StationTimelineScreen.routeName: (_) => const StationTimelineScreen(),
+            StationTimelineScreen.routeName: (_) =>
+                const StationTimelineScreen(),
             ExceptionQueueScreen.routeName: (_) => const ExceptionQueueScreen(),
             PrepRulesScreen.routeName: (_) => const PrepRulesScreen(),
             SettingsScreen.routeName: (_) => const SettingsScreen(),
@@ -155,31 +156,61 @@ class _AppShellState extends State<AppShell> {
         ),
       );
     }
+    final background = Theme.of(context).scaffoldBackgroundColor;
     return Scaffold(
-      body: body,
-      bottomNavigationBar: NavigationBar(
-        selectedIndex: index > 4 ? 4 : index,
-        onDestinationSelected: (value) => setState(() => index = value),
-        destinations: const [
-          NavigationDestination(
-            icon: Icon(Icons.dashboard_outlined),
-            label: 'Board',
-          ),
-          NavigationDestination(
-            icon: Icon(Icons.receipt_long_outlined),
-            label: 'Batch',
-          ),
-          NavigationDestination(
-            icon: Icon(Icons.edit_note_outlined),
-            label: 'Entry',
-          ),
-          NavigationDestination(
-            icon: Icon(Icons.timer_outlined),
-            label: 'Clock',
-          ),
-          NavigationDestination(
-            icon: Icon(Icons.more_horiz),
-            label: 'More',
+      backgroundColor: background,
+      extendBody: true,
+      body: Stack(
+        fit: StackFit.expand,
+        children: [
+          Positioned.fill(child: body),
+          Positioned(
+            left: 0,
+            right: 0,
+            bottom: 0,
+            child: DecoratedBox(
+              key: const Key('shell-bottom-nav-surface'),
+              decoration: BoxDecoration(
+                color: background.withValues(alpha: .96),
+                border: Border(
+                  top: BorderSide(
+                    color: Theme.of(
+                      context,
+                    ).colorScheme.primary.withValues(alpha: .18),
+                  ),
+                ),
+              ),
+              child: SafeArea(
+                top: false,
+                child: NavigationBar(
+                  selectedIndex: index > 4 ? 4 : index,
+                  onDestinationSelected: (value) =>
+                      setState(() => index = value),
+                  destinations: const [
+                    NavigationDestination(
+                      icon: Icon(Icons.dashboard_outlined),
+                      label: 'Board',
+                    ),
+                    NavigationDestination(
+                      icon: Icon(Icons.receipt_long_outlined),
+                      label: 'Batch',
+                    ),
+                    NavigationDestination(
+                      icon: Icon(Icons.edit_note_outlined),
+                      label: 'Entry',
+                    ),
+                    NavigationDestination(
+                      icon: Icon(Icons.timer_outlined),
+                      label: 'Clock',
+                    ),
+                    NavigationDestination(
+                      icon: Icon(Icons.more_horiz),
+                      label: 'More',
+                    ),
+                  ],
+                ),
+              ),
+            ),
           ),
         ],
       ),

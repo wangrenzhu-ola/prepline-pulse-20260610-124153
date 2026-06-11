@@ -24,7 +24,8 @@ class LineBoardScreen extends StatelessWidget {
       actions: [
         IconButton(
           tooltip: 'Board detail',
-          onPressed: () => Navigator.pushNamed(context, LineBoardDetailScreen.routeName),
+          onPressed: () =>
+              Navigator.pushNamed(context, LineBoardDetailScreen.routeName),
           icon: const Icon(Icons.stacked_line_chart_outlined),
         ),
       ],
@@ -37,7 +38,10 @@ class LineBoardScreen extends StatelessWidget {
         const SizedBox(height: 12),
         _LatestSavedState(log: controller.latestSavedState),
         const SizedBox(height: 12),
-        Text('Station status cards', style: Theme.of(context).textTheme.titleLarge),
+        Text(
+          'Station status cards',
+          style: Theme.of(context).textTheme.titleLarge,
+        ),
         const SizedBox(height: 8),
         for (final station in controller.stations) ...[
           _StationStatusCard(
@@ -123,16 +127,23 @@ class _PrimaryUpdateControl extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('Primary update control', style: Theme.of(context).textTheme.titleMedium),
+            Text(
+              'Primary update control',
+              style: Theme.of(context).textTheme.titleMedium,
+            ),
             const SizedBox(height: 10),
             DropdownButtonFormField<String>(
               initialValue: controller.selectedBatchId,
+              isExpanded: true,
               decoration: const InputDecoration(labelText: 'Active batch'),
               items: [
                 for (final batch in controller.batches)
                   DropdownMenuItem(
                     value: batch.id,
-                    child: Text('${batch.id} ${batch.name}'),
+                    child: Text(
+                      '${batch.id} ${batch.name}',
+                      overflow: TextOverflow.ellipsis,
+                    ),
                   ),
               ],
               onChanged: (value) {
@@ -152,8 +163,10 @@ class _PrimaryUpdateControl extends StatelessWidget {
             ),
             const SizedBox(height: 8),
             OutlinedButton.icon(
-              onPressed: () =>
-                  Navigator.pushNamed(context, state_entry.StateEntryScreen.routeName),
+              onPressed: () => Navigator.pushNamed(
+                context,
+                state_entry.StateEntryScreen.routeName,
+              ),
               icon: const Icon(Icons.edit_note_outlined),
               label: const Text('Open full state entry'),
             ),
@@ -177,7 +190,10 @@ class _LatestSavedState extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('Latest saved batch state', style: Theme.of(context).textTheme.titleMedium),
+            Text(
+              'Latest saved batch state',
+              style: Theme.of(context).textTheme.titleMedium,
+            ),
             const SizedBox(height: 8),
             Text('${log.batchName} is ${log.state} at ${log.station}.'),
             const SizedBox(height: 6),
@@ -185,8 +201,14 @@ class _LatestSavedState extends StatelessWidget {
               spacing: 8,
               runSpacing: 8,
               children: [
-                PrepStatusPill('Owner ${log.owner}', icon: Icons.badge_outlined),
-                PrepStatusPill('Saved ${log.savedAt}', icon: Icons.check_circle_outline),
+                PrepStatusPill(
+                  'Owner ${log.owner}',
+                  icon: Icons.badge_outlined,
+                ),
+                PrepStatusPill(
+                  'Saved ${log.savedAt}',
+                  icon: Icons.check_circle_outline,
+                ),
               ],
             ),
             const SizedBox(height: 6),
@@ -235,7 +257,10 @@ class _StationStatusCard extends StatelessWidget {
                     ),
                   ),
                   if (selected)
-                    const PrepStatusPill('Selected', icon: Icons.radio_button_checked),
+                    const PrepStatusPill(
+                      'Selected',
+                      icon: Icons.radio_button_checked,
+                    ),
                 ],
               ),
               const SizedBox(height: 8),
@@ -246,8 +271,14 @@ class _StationStatusCard extends StatelessWidget {
                 runSpacing: 8,
                 children: [
                   PrepStatusPill(batch.state, color: statusColor),
-                  PrepStatusPill('Owner ${batch.owner}', icon: Icons.person_outline),
-                  PrepStatusPill('Backup ${batch.backup}', icon: Icons.group_outlined),
+                  PrepStatusPill(
+                    'Owner ${batch.owner}',
+                    icon: Icons.person_outline,
+                  ),
+                  PrepStatusPill(
+                    'Backup ${batch.backup}',
+                    icon: Icons.group_outlined,
+                  ),
                   PrepStatusPill('${batch.quantity} portions'),
                   PrepStatusPill(batch.serviceWindow),
                 ],
@@ -260,7 +291,10 @@ class _StationStatusCard extends StatelessWidget {
                 runSpacing: 8,
                 children: [
                   OutlinedButton.icon(
-                    onPressed: () => Navigator.pushNamed(context, BatchDetailScreen.routeName),
+                    onPressed: () => Navigator.pushNamed(
+                      context,
+                      BatchDetailScreen.routeName,
+                    ),
                     icon: const Icon(Icons.open_in_new),
                     label: const Text('Open batch'),
                   ),

@@ -2,14 +2,9 @@ import 'package:flutter/material.dart';
 
 import '../models/prep_models.dart';
 import '../screens/about_screen.dart';
-import '../screens/batch_detail_screen.dart';
 import '../screens/exception_queue_screen.dart';
-import '../screens/line_board_screen.dart';
 import '../screens/onboarding_screen.dart';
-import '../screens/prep_rules_screen.dart';
-import '../screens/service_clock_screen.dart';
 import '../screens/settings_screen.dart';
-import '../screens/state_entry_screen.dart';
 import '../screens/station_timeline_screen.dart';
 import '../state/prep_line_state.dart';
 import '../theme/prep_theme.dart';
@@ -35,26 +30,16 @@ class PrepScaffold extends StatelessWidget {
         actions: [
           IconButton(
             tooltip: 'Onboarding',
-            onPressed: () => Navigator.pushNamed(context, OnboardingScreen.routeName),
+            onPressed: () =>
+                Navigator.pushNamed(context, OnboardingScreen.routeName),
             icon: const Icon(Icons.school_outlined),
           ),
           IconButton(
             tooltip: 'Settings',
-            onPressed: () => Navigator.pushNamed(context, SettingsScreen.routeName),
+            onPressed: () =>
+                Navigator.pushNamed(context, SettingsScreen.routeName),
             icon: const Icon(Icons.tune),
           ),
-        ],
-      ),
-      bottomNavigationBar: NavigationBar(
-        selectedIndex: _indexFor(ModalRoute.of(context)?.settings.name),
-        onDestinationSelected: (index) =>
-            Navigator.pushReplacementNamed(context, _navRoutes[index]),
-        destinations: const [
-          NavigationDestination(icon: Icon(Icons.dashboard_outlined), label: 'Board'),
-          NavigationDestination(icon: Icon(Icons.receipt_long), label: 'Detail'),
-          NavigationDestination(icon: Icon(Icons.edit_note), label: 'Entry'),
-          NavigationDestination(icon: Icon(Icons.timer_outlined), label: 'Clock'),
-          NavigationDestination(icon: Icon(Icons.rule), label: 'Rules'),
         ],
       ),
       body: SafeArea(
@@ -69,19 +54,6 @@ class PrepScaffold extends StatelessWidget {
         ),
       ),
     );
-  }
-
-  static const _navRoutes = [
-    LineBoardScreen.routeName,
-    BatchDetailScreen.routeName,
-    StateEntryScreen.routeName,
-    ServiceClockScreen.routeName,
-    PrepRulesScreen.routeName,
-  ];
-
-  int _indexFor(String? route) {
-    final index = _navRoutes.indexOf(route ?? '');
-    return index < 0 ? 0 : index;
   }
 }
 
@@ -140,9 +112,15 @@ class ContractHero extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(contract.pageId, style: Theme.of(context).textTheme.labelLarge),
+                Text(
+                  contract.pageId,
+                  style: Theme.of(context).textTheme.labelLarge,
+                ),
                 const SizedBox(height: 8),
-                Text(contract.title, style: Theme.of(context).textTheme.headlineMedium),
+                Text(
+                  contract.title,
+                  style: Theme.of(context).textTheme.headlineMedium,
+                ),
                 const SizedBox(height: 8),
                 Text(contract.purpose),
               ],
@@ -155,7 +133,12 @@ class ContractHero extends StatelessWidget {
 }
 
 class InfoCard extends StatelessWidget {
-  const InfoCard({required this.title, required this.child, this.trailing, super.key});
+  const InfoCard({
+    required this.title,
+    required this.child,
+    this.trailing,
+    super.key,
+  });
   final String title;
   final Widget child;
   final Widget? trailing;
@@ -171,7 +154,12 @@ class InfoCard extends StatelessWidget {
           children: [
             Row(
               children: [
-                Expanded(child: Text(title, style: Theme.of(context).textTheme.titleMedium)),
+                Expanded(
+                  child: Text(
+                    title,
+                    style: Theme.of(context).textTheme.titleMedium,
+                  ),
+                ),
                 ?trailing,
               ],
             ),
@@ -201,7 +189,11 @@ class StatusChip extends StatelessWidget {
 }
 
 class MediaRecordPanel extends StatelessWidget {
-  const MediaRecordPanel({required this.attachedTo, required this.hero, super.key});
+  const MediaRecordPanel({
+    required this.attachedTo,
+    required this.hero,
+    super.key,
+  });
   final String attachedTo;
   final bool hero;
 
@@ -286,7 +278,10 @@ class BatchSummary extends StatelessWidget {
       spacing: 8,
       runSpacing: 8,
       children: [
-        StatusChip(batch.state, color: batch.blocked ? PrepTheme.error : PrepTheme.success),
+        StatusChip(
+          batch.state,
+          color: batch.blocked ? PrepTheme.error : PrepTheme.success,
+        ),
         StatusChip(batch.station),
         StatusChip('Owner ${batch.owner}'),
         StatusChip('${batch.quantity} portions'),
@@ -304,9 +299,20 @@ class UtilityLinks extends StatelessWidget {
     return Wrap(
       spacing: 8,
       children: [
-        TextButton(onPressed: () => Navigator.pushNamed(context, StationTimelineScreen.routeName), child: const Text('Timeline')),
-        TextButton(onPressed: () => Navigator.pushNamed(context, ExceptionQueueScreen.routeName), child: const Text('Exceptions')),
-        TextButton(onPressed: () => Navigator.pushNamed(context, AboutScreen.routeName), child: const Text('About')),
+        TextButton(
+          onPressed: () =>
+              Navigator.pushNamed(context, StationTimelineScreen.routeName),
+          child: const Text('Timeline'),
+        ),
+        TextButton(
+          onPressed: () =>
+              Navigator.pushNamed(context, ExceptionQueueScreen.routeName),
+          child: const Text('Exceptions'),
+        ),
+        TextButton(
+          onPressed: () => Navigator.pushNamed(context, AboutScreen.routeName),
+          child: const Text('About'),
+        ),
       ],
     );
   }
