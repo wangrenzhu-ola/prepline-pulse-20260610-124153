@@ -5,9 +5,9 @@ import '../state/prep_board_controller.dart';
 import '../theme/prep_theme.dart';
 import '../widgets/media_widgets.dart';
 import '../widgets/operational_page.dart';
+import '../widgets/pulse_balance_button.dart';
 import '../widgets/status_widgets.dart';
 import 'batch_detail_screen.dart';
-import 'line_board_detail_screen.dart';
 import 'state_entry_screen.dart' as state_entry;
 
 // page_id: line-board | route_name: /line-board | widget_class: LineBoardScreen | state_key: lineBoardState
@@ -21,14 +21,7 @@ class LineBoardScreen extends StatelessWidget {
     return OperationalPage(
       pageId: 'line-board',
       title: 'Line Board',
-      actions: [
-        IconButton(
-          tooltip: 'Board detail',
-          onPressed: () =>
-              Navigator.pushNamed(context, LineBoardDetailScreen.routeName),
-          icon: const Icon(Icons.stacked_line_chart_outlined),
-        ),
-      ],
+      actions: const [PulseBalanceButton(compact: true)],
       children: [
         _ServiceWindowCard(controller: controller),
         const SizedBox(height: 12),
@@ -106,6 +99,8 @@ class _ServiceWindowCard extends StatelessWidget {
               ],
             ),
             const SizedBox(height: 12),
+            const PulseBalanceButton(),
+            const SizedBox(height: 12),
             Text(window.pressure),
           ],
         ),
@@ -133,7 +128,7 @@ class _PrimaryUpdateControl extends StatelessWidget {
             ),
             const SizedBox(height: 10),
             DropdownButtonFormField<String>(
-              initialValue: controller.selectedBatchId,
+              value: controller.selectedBatchId,
               isExpanded: true,
               decoration: const InputDecoration(labelText: 'Active batch'),
               items: [
@@ -161,6 +156,8 @@ class _PrimaryUpdateControl extends StatelessWidget {
                 label: const Text('Save ready state'),
               ),
             ),
+            const SizedBox(height: 6),
+            const Text('Uses 10 prep credits.'),
             const SizedBox(height: 8),
             OutlinedButton.icon(
               onPressed: () => Navigator.pushNamed(
@@ -275,12 +272,7 @@ class _StationStatusCard extends StatelessWidget {
                     'Owner ${batch.owner}',
                     icon: Icons.person_outline,
                   ),
-                  PrepStatusPill(
-                    'Backup ${batch.backup}',
-                    icon: Icons.group_outlined,
-                  ),
                   PrepStatusPill('${batch.quantity} portions'),
-                  PrepStatusPill(batch.serviceWindow),
                 ],
               ),
               const SizedBox(height: 10),

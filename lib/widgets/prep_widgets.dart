@@ -1,12 +1,14 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 
+import '../data/prep_seed_data.dart';
 import '../models/prep_models.dart';
 import '../screens/about_screen.dart';
 import '../screens/exception_queue_screen.dart';
-import '../screens/onboarding_screen.dart';
 import '../screens/settings_screen.dart';
 import '../screens/station_timeline_screen.dart';
-import '../state/prep_line_state.dart';
+import '../state/prep_board_controller.dart';
 import '../theme/prep_theme.dart';
 
 class PrepScaffold extends StatelessWidget {
@@ -29,12 +31,6 @@ class PrepScaffold extends StatelessWidget {
         backgroundColor: PrepTheme.background,
         actions: [
           IconButton(
-            tooltip: 'Onboarding',
-            onPressed: () =>
-                Navigator.pushNamed(context, OnboardingScreen.routeName),
-            icon: const Icon(Icons.school_outlined),
-          ),
-          IconButton(
             tooltip: 'Settings',
             onPressed: () =>
                 Navigator.pushNamed(context, SettingsScreen.routeName),
@@ -42,15 +38,28 @@ class PrepScaffold extends StatelessWidget {
           ),
         ],
       ),
-      body: SafeArea(
-        child: ListView(
-          padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
-          children: [
-            ContractMarker(contract: contract),
-            hero ?? ContractHero(contract: contract),
-            const SizedBox(height: 16),
-            ...children,
-          ],
+      body: DecoratedBox(
+        decoration: const BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [
+              Color(0xFF171219),
+              PrepTheme.background,
+              Color(0xFF111C18),
+            ],
+          ),
+        ),
+        child: SafeArea(
+          child: ListView(
+            padding: const EdgeInsets.fromLTRB(16, 8, 16, 96),
+            children: [
+              ContractMarker(contract: contract),
+              hero ?? ContractHero(contract: contract),
+              const SizedBox(height: 16),
+              ...children,
+            ],
+          ),
         ),
       ),
     );
@@ -78,34 +87,33 @@ class ContractHero extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final hasImage = assetPath != null;
+    final imageAsset = assetPath ?? _defaultAssetFor(contract.pageId);
     return Container(
       decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(17),
+        borderRadius: BorderRadius.circular(8),
         gradient: const LinearGradient(
           colors: [Color(0xFF2D2824), Color(0xFF62235B), Color(0xFF101014)],
         ),
-        border: Border.all(color: PrepTheme.gold.withValues(alpha: .24)),
+        border: Border.all(color: PrepTheme.gold.withOpacity(.24)),
       ),
       clipBehavior: Clip.antiAlias,
       child: Stack(
         children: [
-          if (hasImage)
-            SizedBox(
-              height: MediaQuery.sizeOf(context).height * .32,
-              width: double.infinity,
-              child: Image.asset(assetPath!, fit: BoxFit.cover),
-            ),
+          SizedBox(
+            height: MediaQuery.sizeOf(context).height * .34,
+            width: double.infinity,
+            child: Image.asset(imageAsset, fit: BoxFit.cover),
+          ),
           Container(
             width: double.infinity,
-            padding: EdgeInsets.fromLTRB(18, hasImage ? 110 : 24, 18, 22),
+            padding: const EdgeInsets.fromLTRB(18, 110, 18, 22),
             decoration: BoxDecoration(
               gradient: LinearGradient(
                 begin: Alignment.topCenter,
                 end: Alignment.bottomCenter,
                 colors: [
                   Colors.transparent,
-                  PrepTheme.background.withValues(alpha: hasImage ? .90 : .08),
+                  PrepTheme.background.withOpacity(.90),
                 ],
               ),
             ),
@@ -129,6 +137,18 @@ class ContractHero extends StatelessWidget {
         ],
       ),
     );
+  }
+
+  String _defaultAssetFor(String pageId) {
+    switch (pageId) {
+      case 'batch-detail':
+      case 'batch-detail_detail':
+      case 'state-entry':
+      case 'state-entry_detail':
+        return batchAsset;
+      default:
+        return heroAsset;
+    }
   }
 }
 
@@ -160,7 +180,7 @@ class InfoCard extends StatelessWidget {
                     style: Theme.of(context).textTheme.titleMedium,
                   ),
                 ),
-                ?trailing,
+                if (trailing != null) trailing!,
               ],
             ),
             const SizedBox(height: 10),
@@ -181,8 +201,8 @@ class StatusChip extends StatelessWidget {
   Widget build(BuildContext context) {
     return Chip(
       label: Text(label),
-      backgroundColor: color.withValues(alpha: .16),
-      side: BorderSide(color: color.withValues(alpha: .35)),
+      backgroundColor: color.withOpacity(.16),
+      side: BorderSide(color: color.withOpacity(.35)),
       labelStyle: TextStyle(color: color, fontWeight: FontWeight.w700),
     );
   }
@@ -199,18 +219,25 @@ class MediaRecordPanel extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final controller = PrepLineScope.of(context);
+    final controller = PrepBoardScope.of(context);
     final media = controller.mediaFor(attachedTo);
     return InfoCard(
       title: 'User media readback',
       trailing: TextButton.icon(
-        onPressed: () => controller.addMedia(attachedTo),
+        onPressed: () => controller.uploadMedia(attachedTo),
         icon: const Icon(Icons.add_photo_alternate_outlined),
-        label: const Text('Attach'),
+        label: const Text('Upload'),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          if (controller.mediaReadback != null) ...[
+            Text(
+              controller.mediaReadback!,
+              key: const Key('media-readback'),
+            ),
+            const SizedBox(height: 10),
+          ],
           SizedBox(
             height: hero ? 220 : 120,
             child: media.isEmpty
@@ -221,26 +248,10 @@ class MediaRecordPanel extends StatelessWidget {
                       final item = media[index];
                       return SizedBox(
                         width: hero ? 260 : 150,
-                        child: ClipRRect(
-                          borderRadius: BorderRadius.circular(13),
-                          child: Stack(
-                            fit: StackFit.expand,
-                            children: [
-                              Image.asset(item.assetPath, fit: BoxFit.cover),
-                              Align(
-                                alignment: Alignment.bottomLeft,
-                                child: Container(
-                                  color: Colors.black.withValues(alpha: .58),
-                                  padding: const EdgeInsets.all(8),
-                                  child: Text(item.label, maxLines: 2),
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
+                        child: _MediaTile(item: item),
                       );
                     },
-                    separatorBuilder: (_, _) => const SizedBox(width: 10),
+                    separatorBuilder: (_, __) => const SizedBox(width: 10),
                     itemCount: media.length,
                   ),
           ),
@@ -250,9 +261,18 @@ class MediaRecordPanel extends StatelessWidget {
             children: [
               for (final item in media.take(1)) ...[
                 OutlinedButton.icon(
-                  onPressed: () => controller.replaceMedia(item.id),
+                  onPressed: item.storedInDocuments
+                      ? null
+                      : () => controller.replaceMedia(item.id),
                   icon: const Icon(Icons.change_circle_outlined),
                   label: const Text('Replace'),
+                ),
+                OutlinedButton.icon(
+                  onPressed: item.storedInDocuments
+                      ? () => controller.saveMediaToAlbum(item.id)
+                      : null,
+                  icon: const Icon(Icons.photo_library_outlined),
+                  label: const Text('Save album'),
                 ),
                 OutlinedButton.icon(
                   onPressed: () => controller.deleteMedia(item.id),
@@ -261,6 +281,54 @@ class MediaRecordPanel extends StatelessWidget {
                 ),
               ],
             ],
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _MediaTile extends StatelessWidget {
+  const _MediaTile({required this.item});
+
+  final MediaRecord item;
+
+  @override
+  Widget build(BuildContext context) {
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(13),
+      child: Stack(
+        fit: StackFit.expand,
+        children: [
+          if (item.storedInDocuments)
+            FutureBuilder<String>(
+              future: PrepBoardScope.of(context).fullMediaPath(item),
+              builder: (context, snapshot) {
+                if (!snapshot.hasData) {
+                  return const Center(
+                    child: CircularProgressIndicator(strokeWidth: 2),
+                  );
+                }
+                return Image.file(
+                  File(snapshot.data!),
+                  fit: BoxFit.cover,
+                  errorBuilder: (context, error, stackTrace) =>
+                      const ColoredBox(
+                    color: PrepTheme.elevated,
+                    child: Icon(Icons.broken_image_outlined),
+                  ),
+                );
+              },
+            )
+          else
+            Image.asset(item.assetPath, fit: BoxFit.cover),
+          Align(
+            alignment: Alignment.bottomLeft,
+            child: Container(
+              color: Colors.black.withOpacity(.58),
+              padding: const EdgeInsets.all(8),
+              child: Text(item.label, maxLines: 2),
+            ),
           ),
         ],
       ),

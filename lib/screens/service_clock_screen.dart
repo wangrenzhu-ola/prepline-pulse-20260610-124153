@@ -28,51 +28,11 @@ class _ServiceClockScreenState extends State<ServiceClockScreen> {
   String _readback =
       'Readback: service-clock showing 3 batches for all stations; next close is 11:30 lunch.';
 
-  final List<PrepBatch> _batches = const [
-    PrepBatch(
-      id: 'B-104',
-      name: 'Roast chicken trays',
-      station: 'Hot line',
-      owner: 'Mika',
-      backup: 'Ren',
-      quantity: 18,
-      state: 'Cooking',
-      serviceWindow: '11:30 lunch',
-      minutesToWindow: 24,
-      note: 'Temp check due before transfer.',
-      blocked: false,
-    ),
-    PrepBatch(
-      id: 'B-118',
-      name: 'Avocado toast mise',
-      station: 'Cold bar',
-      owner: 'Lena',
-      backup: 'Sam',
-      quantity: 32,
-      state: 'Waiting',
-      serviceWindow: '11:30 lunch',
-      minutesToWindow: 18,
-      note: 'Backup avocado pan requested.',
-      blocked: true,
-    ),
-    PrepBatch(
-      id: 'B-126',
-      name: 'Soup garnish cups',
-      station: 'Expo',
-      owner: 'Jun',
-      backup: 'Mika',
-      quantity: 44,
-      state: 'Ready',
-      serviceWindow: '12:00 rush',
-      minutesToWindow: 52,
-      note: 'Stored on top rail.',
-      blocked: false,
-    ),
-  ];
-
   @override
   Widget build(BuildContext context) {
-    final visible = _visibleBatches;
+    final controller = PrepBoardScope.of(context);
+    final batches = controller.batches;
+    final visible = _visibleBatches(batches);
     final ready = visible.where((batch) => batch.state == 'Ready').toList();
     final waiting = visible.where((batch) => batch.state != 'Ready').toList();
     final lateRisk = visible
@@ -81,13 +41,12 @@ class _ServiceClockScreenState extends State<ServiceClockScreen> {
     final nextClose = visible.isEmpty
         ? 'No active window'
         : visible
-              .reduce(
-                (first, second) =>
-                    first.minutesToWindow <= second.minutesToWindow
-                    ? first
-                    : second,
-              )
-              .serviceWindow;
+            .reduce(
+              (first, second) => first.minutesToWindow <= second.minutesToWindow
+                  ? first
+                  : second,
+            )
+            .serviceWindow;
 
     return Scaffold(
       appBar: AppBar(
@@ -112,14 +71,14 @@ class _ServiceClockScreenState extends State<ServiceClockScreen> {
             ),
             const SizedBox(height: 12),
             _StationFilter(
-              stations: [_allStations, ..._stations],
+              stations: [_allStations, ..._stations(batches)],
               selectedStation: _stationFilter,
               onChanged: (station) {
                 setState(() {
                   _stationFilter = station;
                   _recordReadback(
-                    _visibleBatches,
-                    _nextCloseLabel(_visibleBatches),
+                    _visibleBatches(batches),
+                    _nextCloseLabel(_visibleBatches(batches)),
                   );
                 });
               },
@@ -161,14 +120,14 @@ class _ServiceClockScreenState extends State<ServiceClockScreen> {
     );
   }
 
-  List<String> get _stations =>
-      _batches.map((batch) => batch.station).toSet().toList()..sort();
+  List<String> _stations(List<PrepBatch> batches) =>
+      batches.map((batch) => batch.station).toSet().toList()..sort();
 
-  List<PrepBatch> get _visibleBatches {
+  List<PrepBatch> _visibleBatches(List<PrepBatch> batches) {
     if (_stationFilter == _allStations) {
-      return _batches;
+      return batches;
     }
-    return _batches.where((batch) => batch.station == _stationFilter).toList();
+    return batches.where((batch) => batch.station == _stationFilter).toList();
   }
 
   int _minutesToNextClose(List<PrepBatch> batches) {
@@ -503,9 +462,8 @@ class _WindowCloseSummary extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final readyCount = visibleBatches
-        .where((batch) => batch.state == 'Ready')
-        .length;
+    final readyCount =
+        visibleBatches.where((batch) => batch.state == 'Ready').length;
     final waitingCount = visibleBatches.length - readyCount;
     return _Panel(
       child: Column(

@@ -14,7 +14,7 @@ class PrepLineTheme {
           scrolledUnderElevation: 0,
         ),
         navigationBarTheme: NavigationBarThemeData(
-          indicatorColor: PrepTheme.gold.withValues(alpha: .18),
+          indicatorColor: PrepTheme.gold.withOpacity(.18),
           labelTextStyle: WidgetStateProperty.resolveWith(
             (states) => TextStyle(
               fontSize: 12,

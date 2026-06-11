@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../data/prep_seed_data.dart';
+import '../screens/protocol_screen.dart';
 import '../state/prep_board_controller.dart';
 import '../widgets/prep_widgets.dart';
 
@@ -38,7 +39,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
     }
 
     return PrepScaffold(
-      contract: pageContracts[7],
+      contract: pageContracts[8],
       children: [
         InfoCard(
           title: 'Station rules revision controls',
@@ -48,7 +49,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
             children: [
               DropdownButtonFormField<String>(
                 key: const Key('settings-station-rule-dropdown'),
-                initialValue: _stationPreference,
+                value: _stationPreference,
                 decoration: const InputDecoration(
                   border: OutlineInputBorder(),
                   labelText: 'Station preference',
@@ -71,7 +72,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
               const SizedBox(height: 12),
               DropdownButtonFormField<String>(
                 key: const Key('settings-service-window-dropdown'),
-                initialValue: _serviceWindowDefault,
+                value: _serviceWindowDefault,
                 decoration: const InputDecoration(
                   border: OutlineInputBorder(),
                   labelText: 'Service window default',
@@ -213,6 +214,35 @@ class _SettingsScreenState extends State<SettingsScreen> {
                         'Backup pan agreement ${value ? 'included' : 'removed'} from revision $_rulesRevision.';
                   });
                 },
+              ),
+            ],
+          ),
+        ),
+        InfoCard(
+          title: 'Policy documents',
+          child: Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            children: [
+              OutlinedButton.icon(
+                key: const Key('settings-user-agreement-entry'),
+                onPressed: () => Navigator.pushNamed(
+                  context,
+                  ProtocolScreen.routeName,
+                  arguments: 'User Agreement',
+                ),
+                icon: const Icon(Icons.description_outlined),
+                label: const Text('User Agreement'),
+              ),
+              OutlinedButton.icon(
+                key: const Key('settings-privacy-policy-entry'),
+                onPressed: () => Navigator.pushNamed(
+                  context,
+                  ProtocolScreen.routeName,
+                  arguments: 'Privacy Policy',
+                ),
+                icon: const Icon(Icons.privacy_tip_outlined),
+                label: const Text('Privacy Policy'),
               ),
             ],
           ),

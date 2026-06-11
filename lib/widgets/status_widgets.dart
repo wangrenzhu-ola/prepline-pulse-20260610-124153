@@ -19,9 +19,9 @@ class PrepStatusPill extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
       decoration: BoxDecoration(
-        color: color.withValues(alpha: .16),
+        color: color.withOpacity(.16),
         borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: color.withValues(alpha: .36)),
+        border: Border.all(color: color.withOpacity(.36)),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
@@ -61,9 +61,9 @@ class ConfirmationBanner extends StatelessWidget {
         width: double.infinity,
         padding: const EdgeInsets.all(12),
         decoration: BoxDecoration(
-          color: PrepTheme.success.withValues(alpha: .14),
+          color: PrepTheme.success.withOpacity(.14),
           borderRadius: BorderRadius.circular(8),
-          border: Border.all(color: PrepTheme.success.withValues(alpha: .34)),
+          border: Border.all(color: PrepTheme.success.withOpacity(.34)),
         ),
         child: Row(
           children: [

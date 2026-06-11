@@ -1,15 +1,13 @@
 import 'package:flutter/material.dart';
 
 import '../data/prep_seed_data.dart';
-import '../models/prep_models.dart';
 import '../state/prep_board_controller.dart';
-import '../state/prep_line_state.dart';
 import '../theme/prep_theme.dart';
 import '../widgets/media_widgets.dart';
 import '../widgets/operational_page.dart';
 import '../widgets/prep_widgets.dart';
 import '../widgets/status_widgets.dart';
-import 'batch_detail_detail_screen.dart';
+import 'state_entry_screen.dart' show StateEntryScreen;
 
 typedef BatchDetailActionContract = PrepBoardController;
 
@@ -20,7 +18,7 @@ class BatchDetailScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final controller = PrepLineScope.of(context);
+    final controller = PrepBoardScope.of(context);
     return AnimatedBuilder(
       animation: controller,
       builder: (context, _) {
@@ -72,7 +70,7 @@ class BatchDetailScreen extends StatelessWidget {
                 ],
               ),
             ),
-            const MediaRecordPanel(attachedTo: 'batch-detail', hero: false),
+            const MediaRecordPanel(attachedTo: 'batch-detail', hero: true),
             if (media.isNotEmpty) PrepMediaPreview(record: media.first),
             const SizedBox(height: 12),
             InfoCard(
@@ -120,7 +118,7 @@ class BatchDetailScreen extends StatelessWidget {
                           controller.selectBatch(batch.id);
                           Navigator.pushNamed(
                             context,
-                            '/state-entry',
+                            StateEntryScreen.routeName,
                           );
                         },
                         icon: const Icon(Icons.edit_note),
@@ -132,18 +130,10 @@ class BatchDetailScreen extends StatelessWidget {
                             ? null
                             : () {
                                 controller.selectBatch(batch.id);
-                                controller.resolveBlocked();
+                                controller.resolveBlocked(batch.id);
                               },
                         icon: const Icon(Icons.task_alt),
                         label: const Text('Resolve Blocked'),
-                      ),
-                      OutlinedButton.icon(
-                        onPressed: () => Navigator.pushNamed(
-                          context,
-                          BatchDetailDetailScreen.routeName,
-                        ),
-                        icon: const Icon(Icons.fact_check_outlined),
-                        label: const Text('Audit Detail'),
                       ),
                     ],
                   ),
@@ -154,6 +144,8 @@ class BatchDetailScreen extends StatelessWidget {
                       key: const Key('batch-detail-save-readback'),
                       style: const TextStyle(color: PrepTheme.success),
                     ),
+                  const SizedBox(height: 8),
+                  const Text('Save State uses 10 prep credits.'),
                   if (controller.lastResolvedException != null)
                     Text(
                       controller.lastResolvedException!,
@@ -173,36 +165,5 @@ class BatchDetailScreen extends StatelessWidget {
         );
       },
     );
-  }
-}
-
-extension _BatchDetailControllerActions on PrepLineController {
-  List<PrepLog> historyForSelectedBatch() {
-    return logs
-        .where((log) => log.batchId == selectedBatchId)
-        .toList()
-        .reversed
-        .toList();
-  }
-
-  PrepException? openExceptionForSelectedBatch() {
-    for (final exception in exceptions) {
-      if (exception.batchId == selectedBatchId && !exception.resolved) {
-        return exception;
-      }
-    }
-    return null;
-  }
-
-  void saveState() {
-    saveCurrentState();
-  }
-
-  void resolveBlocked() {
-    final exception = openExceptionForSelectedBatch();
-    if (exception == null) {
-      return;
-    }
-    resolveException(exception.id);
   }
 }

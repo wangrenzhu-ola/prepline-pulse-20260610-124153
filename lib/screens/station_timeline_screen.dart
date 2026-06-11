@@ -5,7 +5,6 @@ import 'package:flutter/material.dart';
 import '../data/prep_seed_data.dart';
 import '../models/prep_models.dart';
 import '../state/prep_board_controller.dart';
-import '../state/prep_line_state.dart';
 import '../widgets/operational_page.dart';
 import '../widgets/prep_widgets.dart';
 import '../widgets/status_widgets.dart';
@@ -18,18 +17,13 @@ class StationTimelineScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final controller = PrepLineScope.of(context);
+    final controller = PrepBoardScope.of(context);
     final logs = controller.logs.reversed.toList();
     final latest = logs.isEmpty ? null : logs.first;
     final stations = {
       'All stations',
       ...controller.batches.map((batch) => batch.station),
       ...controller.logs.map((log) => log.station),
-    }.toList();
-    final states = {
-      'All states',
-      ...controller.batches.map((batch) => batch.state),
-      ...controller.logs.map((log) => log.state),
     }.toList();
 
     return PrepScaffold(
@@ -48,7 +42,6 @@ class StationTimelineScreen extends StatelessWidget {
                 children: [
                   const StatusChip('Today'),
                   for (final station in stations) StatusChip(station),
-                  for (final state in states) StatusChip(state),
                 ],
               ),
               const SizedBox(height: 10),
@@ -92,18 +85,6 @@ class StationTimelineScreen extends StatelessWidget {
                 const SizedBox(height: 10),
                 Text(controller.lastConfirmation!),
               ],
-            ],
-          ),
-        ),
-        InfoCard(
-          title: 'Owner badges',
-          child: Wrap(
-            spacing: 8,
-            runSpacing: 8,
-            children: [
-              for (final owner
-                  in controller.logs.map((log) => log.owner).toSet())
-                StatusChip('$owner owner'),
             ],
           ),
         ),

@@ -1,4 +1,5 @@
 import '../models/prep_models.dart';
+import 'prep_seed_data.dart';
 
 const String prepSampleAsset = 'assets/prep_sample.txt';
 
@@ -92,8 +93,8 @@ class PrepRepository {
       ),
       media: const MediaRecord(
         id: 'M-line-board',
-        assetPath: prepSampleAsset,
-        label: 'Station prep sample attached',
+        assetPath: heroAsset,
+        label: 'Station prep photo attached',
         attachedTo: 'line-board',
       ),
     );

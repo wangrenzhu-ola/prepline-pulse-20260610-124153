@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../data/prep_seed_data.dart';
+import '../state/prep_board_controller.dart';
 import '../widgets/prep_widgets.dart';
 
 // page_id source marker: about
@@ -24,22 +25,22 @@ class _AboutScreenState extends State<AboutScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final exceptionCount = seedExceptions.length;
-    final activeBatchCount = seedBatches.length;
+    final controller = PrepBoardScope.of(context);
+    final exceptionCount = controller.blockedCount;
+    final activeBatchCount = controller.batches.length;
     final rulesIncluded = _rulesIncluded.length;
-    final serviceWindows = seedBatches
+    final serviceWindows = controller.batches
         .map((batch) => batch.serviceWindow)
         .toSet()
         .join(' + ');
-    final blockedBatchCount = seedBatches
-        .where((batch) => batch.blocked)
-        .length;
+    final blockedBatchCount =
+        controller.batches.where((batch) => batch.blocked).length;
     final readback = _exported
         ? 'Exported/readback confirmed: $activeBatchCount batches, '
-              '$exceptionCount exceptions, $rulesIncluded rules, '
-              'service window $serviceWindows.'
+            '$exceptionCount exceptions, $rulesIncluded rules, '
+            'service window $serviceWindows.'
         : 'Ready to export: preview includes exception count, rules included, '
-              'and service window readback.';
+            'and service window readback.';
 
     return PrepScaffold(
       contract: pageContracts[9],

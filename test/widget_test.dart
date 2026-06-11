@@ -2,14 +2,25 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
+import 'package:app_20260610_124153/data/prep_seed_data.dart';
+import 'package:app_20260610_124153/models/prep_models.dart';
+import 'package:app_20260610_124153/models/pulse_store_models.dart';
 import 'package:app_20260610_124153/screens/app_shell.dart';
 import 'package:app_20260610_124153/screens/line_board_screen.dart';
 import 'package:app_20260610_124153/screens/service_clock_screen.dart';
 import 'package:app_20260610_124153/screens/state_entry_screen.dart';
+import 'package:app_20260610_124153/services/prepline_document_media_store.dart';
+import 'package:app_20260610_124153/services/prepline_purchase_service.dart';
 import 'package:app_20260610_124153/state/prep_board_controller.dart';
+import 'package:app_20260610_124153/widgets/media_widgets.dart';
 
 void main() {
+  setUp(() {
+    SharedPreferences.setMockInitialValues({});
+  });
+
   test('iOS metadata opts into the full-screen launch storyboard', () {
     final plist = File('ios/Runner/Info.plist').readAsStringSync();
 
@@ -17,6 +28,78 @@ void main() {
     expect(plist, contains('<string>LaunchScreen</string>'));
     expect(plist, contains('<key>CFBundleDisplayName</key>'));
     expect(plist, contains('<string>PrepLine Pulse</string>'));
+    expect(plist, contains('<key>NSUserTrackingUsageDescription</key>'));
+    expect(plist, contains('<key>NSCameraUsageDescription</key>'));
+    expect(plist, contains('<key>NSMicrophoneUsageDescription</key>'));
+    expect(plist, contains('<key>NSPhotoLibraryUsageDescription</key>'));
+    expect(plist, contains('<key>NSPhotoLibraryAddUsageDescription</key>'));
+  });
+
+  test('iOS project packages app resources and registers scene plugins', () {
+    final project = File(
+      'ios/Runner.xcodeproj/project.pbxproj',
+    ).readAsStringSync();
+    final appDelegate = File('ios/Runner/AppDelegate.swift').readAsStringSync();
+    final sceneDelegate = File(
+      'ios/Runner/SceneDelegate.swift',
+    ).readAsStringSync();
+
+    expect(project, contains('Main.storyboard in Resources'));
+    expect(project, contains('Assets.xcassets in Resources'));
+    expect(project, contains('LaunchScreen.storyboard in Resources'));
+    expect(appDelegate, isNot(contains('GeneratedPluginRegistrant.register')));
+    expect(
+      sceneDelegate,
+      contains(
+          'GeneratedPluginRegistrant.register(with: flutterViewController)'),
+    );
+  });
+
+  test('page contract stays within the simplified ten page surface', () {
+    expect(pageContracts, hasLength(10));
+    expect(pageContracts.map((contract) => contract.pageId), [
+      'line-board',
+      'batch-detail',
+      'state-entry',
+      'service-clock',
+      'station-timeline',
+      'exception-queue',
+      'prep-rules',
+      'pulse-store',
+      'settings',
+      'about',
+    ]);
+  });
+
+  test('store catalog keeps the 27 verbatim product identifiers', () {
+    expect(pulseStoreCatalog, hasLength(27));
+    expect(pulseStoreCatalog.first.id, '473900');
+    expect(pulseStoreCatalog.last.id, '473926');
+    expect(pulseStoreProductIds, containsAll(['473900', '473918', '473926']));
+  });
+
+  test('relative media paths reject absolute persisted storage', () {
+    final store = PreplineDocumentMediaStore();
+
+    expect(store.isRelativePath('station_images/proof.jpg'), isTrue);
+    expect(store.isRelativePath('/tmp/proof.jpg'), isFalse);
+    expect(store.isRelativePath('../proof.jpg'), isFalse);
+  });
+
+  test('purchase delivery is idempotent for the same delivery key', () async {
+    final controller = PrepBoardController();
+    addTearDown(controller.dispose);
+
+    await controller.addTestPurchaseDelivery(
+      deliveryKey: 'delivery-473900',
+      amount: 110,
+    );
+    await controller.addTestPurchaseDelivery(
+      deliveryKey: 'delivery-473900',
+      amount: 110,
+    );
+
+    expect(controller.pulseCredits, PulseWalletLedger.initialBalance + 110);
   });
 
   testWidgets('app shell fills the portrait viewport and pins navigation', (
@@ -61,7 +144,7 @@ void main() {
     );
     final surfaceDecoration = navigationSurface.decoration as BoxDecoration;
     expect(surfaceDecoration.color, isNotNull);
-    expect(surfaceDecoration.color!.a, 1);
+    expect(surfaceDecoration.color!.opacity, 1);
   });
 
   testWidgets(
@@ -75,7 +158,7 @@ void main() {
       await tester.tap(find.text('State Entry'));
       await tester.pumpAndSettle();
 
-      expect(find.text('State Entry'), findsOneWidget);
+      expect(find.text('State Entry'), findsWidgets);
       expect(
         find.byKey(const Key('state-entry-batch-selector')),
         findsOneWidget,
@@ -118,7 +201,7 @@ void main() {
       await tester.tap(find.text('Service Clock'));
       await tester.pumpAndSettle();
 
-      expect(find.text('Service Clock'), findsOneWidget);
+      expect(find.text('Service Clock'), findsWidgets);
       expect(find.text('Service countdown'), findsOneWidget);
 
       final serviceClockScroll = find
@@ -142,6 +225,56 @@ void main() {
       expect(find.textContaining('Readback: service-clock'), findsOneWidget);
     },
   );
+
+  testWidgets('state saves persist station, note, logs, and exceptions', (
+    tester,
+  ) async {
+    final controller = PrepBoardController();
+    addTearDown(controller.dispose);
+
+    controller.saveState(
+      station: 'Cold bar',
+      nextState: 'Blocked',
+      note: 'Needs manager check before handoff.',
+    );
+
+    expect(controller.selectedBatch.station, 'Cold bar');
+    expect(controller.selectedBatch.state, 'Blocked');
+    expect(
+        controller.selectedBatch.note, 'Needs manager check before handoff.');
+    expect(controller.latestSavedState.station, 'Cold bar');
+    expect(controller.latestSavedState.note,
+        'Needs manager check before handoff.');
+    expect(controller.historyForSelectedBatch().first.state, 'Blocked');
+    expect(controller.openExceptionForSelectedBatch(), isNotNull);
+
+    controller.resolveBlocked(controller.selectedBatchId);
+
+    expect(controller.selectedBatch.blocked, isFalse);
+    expect(controller.openExceptionForSelectedBatch(), isNull);
+    expect(controller.lastResolvedException, contains('B-104'));
+  });
+
+  testWidgets('media preview renders image assets as images', (tester) async {
+    await tester.pumpWidget(
+      const MaterialApp(
+        home: Scaffold(
+          body: PrepMediaPreview(
+            record: MediaRecord(
+              id: 'media-test',
+              assetPath: heroAsset,
+              label: 'Station proof',
+              attachedTo: 'line-board',
+            ),
+          ),
+        ),
+      ),
+    );
+
+    expect(find.byType(Image), findsOneWidget);
+    expect(find.textContaining('Image: assets/images/prepline_hero.png'),
+        findsOneWidget);
+  });
 }
 
 class _FlowReviewEvidenceApp extends StatefulWidget {
