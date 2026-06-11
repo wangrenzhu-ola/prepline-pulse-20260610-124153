@@ -3,10 +3,13 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
+import 'package:app_20260610_124153/data/prep_seed_data.dart';
+import 'package:app_20260610_124153/models/prep_models.dart';
 import 'package:app_20260610_124153/screens/app_shell.dart';
 import 'package:app_20260610_124153/screens/service_clock_screen.dart';
 import 'package:app_20260610_124153/screens/state_entry_screen.dart';
 import 'package:app_20260610_124153/state/prep_board_controller.dart';
+import 'package:app_20260610_124153/widgets/media_widgets.dart';
 
 void main() {
   test('iOS metadata opts into the full-screen launch storyboard', () {
@@ -54,7 +57,7 @@ void main() {
       await tester.tap(find.text('State Entry'));
       await tester.pumpAndSettle();
 
-      expect(find.text('State Entry'), findsOneWidget);
+      expect(find.text('State Entry'), findsWidgets);
       expect(
         find.byKey(const Key('state-entry-batch-selector')),
         findsOneWidget,
@@ -97,7 +100,7 @@ void main() {
       await tester.tap(find.text('Service Clock'));
       await tester.pumpAndSettle();
 
-      expect(find.text('Service Clock'), findsOneWidget);
+      expect(find.text('Service Clock'), findsWidgets);
       expect(find.text('Service countdown'), findsOneWidget);
 
       final serviceClockScroll = find
@@ -121,6 +124,56 @@ void main() {
       expect(find.textContaining('Readback: service-clock'), findsOneWidget);
     },
   );
+
+  testWidgets('state saves persist station, note, logs, and exceptions', (
+    tester,
+  ) async {
+    final controller = PrepBoardController();
+    addTearDown(controller.dispose);
+
+    controller.saveState(
+      station: 'Cold bar',
+      nextState: 'Blocked',
+      note: 'Needs manager check before handoff.',
+    );
+
+    expect(controller.selectedBatch.station, 'Cold bar');
+    expect(controller.selectedBatch.state, 'Blocked');
+    expect(
+        controller.selectedBatch.note, 'Needs manager check before handoff.');
+    expect(controller.latestSavedState.station, 'Cold bar');
+    expect(controller.latestSavedState.note,
+        'Needs manager check before handoff.');
+    expect(controller.historyForSelectedBatch().first.state, 'Blocked');
+    expect(controller.openExceptionForSelectedBatch(), isNotNull);
+
+    controller.resolveBlocked(controller.selectedBatchId);
+
+    expect(controller.selectedBatch.blocked, isFalse);
+    expect(controller.openExceptionForSelectedBatch(), isNull);
+    expect(controller.lastResolvedException, contains('B-104'));
+  });
+
+  testWidgets('media preview renders image assets as images', (tester) async {
+    await tester.pumpWidget(
+      const MaterialApp(
+        home: Scaffold(
+          body: PrepMediaPreview(
+            record: MediaRecord(
+              id: 'media-test',
+              assetPath: heroAsset,
+              label: 'Station proof',
+              attachedTo: 'line-board',
+            ),
+          ),
+        ),
+      ),
+    );
+
+    expect(find.byType(Image), findsOneWidget);
+    expect(find.textContaining('Image: assets/images/prepline_hero.png'),
+        findsOneWidget);
+  });
 }
 
 class _FlowReviewEvidenceApp extends StatefulWidget {

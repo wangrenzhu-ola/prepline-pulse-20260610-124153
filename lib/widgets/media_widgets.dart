@@ -11,18 +11,22 @@ class PrepMediaPreview extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    if (_isImage(record.assetPath)) {
+      return _ImageMediaPreview(record: record);
+    }
     return FutureBuilder<String>(
       future: rootBundle.loadString(record.assetPath),
       builder: (context, snapshot) {
         final exists = snapshot.hasData;
-        final preview = exists ? snapshot.data!.split('\n').first : 'Loading asset';
+        final preview =
+            exists ? snapshot.data!.split('\n').first : 'Loading asset';
         return Container(
           width: double.infinity,
           padding: const EdgeInsets.all(14),
           decoration: BoxDecoration(
             color: PrepTheme.elevated,
             borderRadius: BorderRadius.circular(8),
-            border: Border.all(color: PrepTheme.gold.withValues(alpha: .26)),
+            border: Border.all(color: PrepTheme.gold.withOpacity(.26)),
           ),
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -32,7 +36,7 @@ class PrepMediaPreview extends StatelessWidget {
                 height: 72,
                 alignment: Alignment.center,
                 decoration: BoxDecoration(
-                  color: PrepTheme.gold.withValues(alpha: .14),
+                  color: PrepTheme.gold.withOpacity(.14),
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: Icon(
@@ -60,6 +64,70 @@ class PrepMediaPreview extends StatelessWidget {
           ),
         );
       },
+    );
+  }
+
+  bool _isImage(String assetPath) {
+    final lower = assetPath.toLowerCase();
+    return lower.endsWith('.png') ||
+        lower.endsWith('.jpg') ||
+        lower.endsWith('.jpeg') ||
+        lower.endsWith('.webp');
+  }
+}
+
+class _ImageMediaPreview extends StatelessWidget {
+  const _ImageMediaPreview({required this.record});
+
+  final MediaRecord record;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: PrepTheme.elevated,
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: PrepTheme.gold.withOpacity(.26)),
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          ClipRRect(
+            borderRadius: BorderRadius.circular(8),
+            child: Image.asset(
+              record.assetPath,
+              width: 96,
+              height: 72,
+              fit: BoxFit.cover,
+              errorBuilder: (context, error, stackTrace) => Container(
+                width: 96,
+                height: 72,
+                color: PrepTheme.error.withOpacity(.12),
+                alignment: Alignment.center,
+                child: const Icon(Icons.broken_image_outlined),
+              ),
+            ),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  record.label,
+                  style: Theme.of(context).textTheme.titleMedium,
+                ),
+                const SizedBox(height: 6),
+                Text('Image: ${record.assetPath}'),
+                const SizedBox(height: 6),
+                Text('Attached to ${record.attachedTo}'),
+              ],
+            ),
+          ),
+        ],
+      ),
     );
   }
 }

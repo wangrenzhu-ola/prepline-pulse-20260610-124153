@@ -5,7 +5,6 @@ import 'package:flutter/material.dart';
 import '../data/prep_seed_data.dart';
 import '../models/prep_models.dart';
 import '../state/prep_board_controller.dart';
-import '../state/prep_line_state.dart';
 import '../widgets/operational_page.dart';
 import '../widgets/prep_widgets.dart';
 import '../widgets/status_widgets.dart';
@@ -18,7 +17,7 @@ class StationTimelineScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final controller = PrepLineScope.of(context);
+    final controller = PrepBoardScope.of(context);
     final logs = controller.logs.reversed.toList();
     final latest = logs.isEmpty ? null : logs.first;
     final stations = {

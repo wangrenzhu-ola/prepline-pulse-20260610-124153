@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../data/prep_seed_data.dart';
 import '../models/prep_models.dart';
-import '../state/prep_line_state.dart';
+import '../state/prep_board_controller.dart';
 import '../theme/prep_theme.dart';
 import '../widgets/media_widgets.dart';
 import '../widgets/prep_widgets.dart';
@@ -25,7 +25,7 @@ class _LineBoardDetailScreenState extends State<LineBoardDetailScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final controller = PrepLineScope.of(context);
+    final controller = PrepBoardScope.of(context);
     return AnimatedBuilder(
       animation: controller,
       builder: (context, _) {
@@ -192,9 +192,8 @@ class _MediaSummaryRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final latest = media.isEmpty
-        ? emptyText
-        : '${media.last.id}: ${media.last.label}';
+    final latest =
+        media.isEmpty ? emptyText : '${media.last.id}: ${media.last.label}';
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [

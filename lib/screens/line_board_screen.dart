@@ -133,7 +133,7 @@ class _PrimaryUpdateControl extends StatelessWidget {
             ),
             const SizedBox(height: 10),
             DropdownButtonFormField<String>(
-              initialValue: controller.selectedBatchId,
+              value: controller.selectedBatchId,
               isExpanded: true,
               decoration: const InputDecoration(labelText: 'Active batch'),
               items: [

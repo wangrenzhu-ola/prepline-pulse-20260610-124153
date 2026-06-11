@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 
 import '../state/prep_board_controller.dart';
-import '../state/prep_line_state.dart' as legacy;
 import '../theme/app_theme.dart';
 import 'about_screen.dart';
 import 'batch_detail_detail_screen.dart';
@@ -26,19 +25,16 @@ class PrepLinePulseApp extends StatefulWidget {
 
 class _PrepLinePulseAppState extends State<PrepLinePulseApp> {
   late final PrepBoardController boardController;
-  late final legacy.PrepLineController legacyController;
 
   @override
   void initState() {
     super.initState();
     boardController = PrepBoardController();
-    legacyController = legacy.PrepLineController();
   }
 
   @override
   void dispose() {
     boardController.dispose();
-    legacyController.dispose();
     super.dispose();
   }
 
@@ -46,33 +42,28 @@ class _PrepLinePulseAppState extends State<PrepLinePulseApp> {
   Widget build(BuildContext context) {
     return PrepBoardScope(
       controller: boardController,
-      child: legacy.PrepLineScope(
-        controller: legacyController,
-        child: MaterialApp(
-          title: 'PrepLine Pulse',
-          debugShowCheckedModeBanner: false,
-          theme: PrepLineTheme.dark(),
-          home: const AppShell(),
-          routes: {
-            LineBoardScreen.routeName: (_) => const AppShell(initialIndex: 0),
-            BatchDetailScreen.routeName: (_) => const BatchDetailScreen(),
-            StateEntryScreen.routeName: (_) => const StateEntryScreen(),
-            ServiceClockScreen.routeName: (_) => const ServiceClockScreen(),
-            StationTimelineScreen.routeName: (_) =>
-                const StationTimelineScreen(),
-            ExceptionQueueScreen.routeName: (_) => const ExceptionQueueScreen(),
-            PrepRulesScreen.routeName: (_) => const PrepRulesScreen(),
-            SettingsScreen.routeName: (_) => const SettingsScreen(),
-            OnboardingScreen.routeName: (_) => const OnboardingScreen(),
-            AboutScreen.routeName: (_) => const AboutScreen(),
-            LineBoardDetailScreen.routeName: (_) =>
-                const LineBoardDetailScreen(),
-            BatchDetailDetailScreen.routeName: (_) =>
-                const BatchDetailDetailScreen(),
-            StateEntryDetailScreen.routeName: (_) =>
-                const StateEntryDetailScreen(),
-          },
-        ),
+      child: MaterialApp(
+        title: 'PrepLine Pulse',
+        debugShowCheckedModeBanner: false,
+        theme: PrepLineTheme.dark(),
+        home: const AppShell(),
+        routes: {
+          LineBoardScreen.routeName: (_) => const AppShell(initialIndex: 0),
+          BatchDetailScreen.routeName: (_) => const BatchDetailScreen(),
+          StateEntryScreen.routeName: (_) => const StateEntryScreen(),
+          ServiceClockScreen.routeName: (_) => const ServiceClockScreen(),
+          StationTimelineScreen.routeName: (_) => const StationTimelineScreen(),
+          ExceptionQueueScreen.routeName: (_) => const ExceptionQueueScreen(),
+          PrepRulesScreen.routeName: (_) => const PrepRulesScreen(),
+          SettingsScreen.routeName: (_) => const SettingsScreen(),
+          OnboardingScreen.routeName: (_) => const OnboardingScreen(),
+          AboutScreen.routeName: (_) => const AboutScreen(),
+          LineBoardDetailScreen.routeName: (_) => const LineBoardDetailScreen(),
+          BatchDetailDetailScreen.routeName: (_) =>
+              const BatchDetailDetailScreen(),
+          StateEntryDetailScreen.routeName: (_) =>
+              const StateEntryDetailScreen(),
+        },
       ),
     );
   }
@@ -104,6 +95,15 @@ class _AppShellState extends State<AppShell> {
     LineBoardDetailScreen(),
     BatchDetailDetailScreen(),
     StateEntryDetailScreen(),
+  ];
+
+  static const _moreDestinations = <_MoreDestination>[
+    _MoreDestination('Station timeline', Icons.timeline_outlined, 4),
+    _MoreDestination('Exception queue', Icons.report_problem_outlined, 5),
+    _MoreDestination('Prep rules', Icons.rule_outlined, 6),
+    _MoreDestination('Settings', Icons.tune, 7),
+    _MoreDestination('Onboarding', Icons.school_outlined, 8),
+    _MoreDestination('About', Icons.info_outline, 9),
   ];
 
   @override
@@ -171,12 +171,12 @@ class _AppShellState extends State<AppShell> {
             child: DecoratedBox(
               key: const Key('shell-bottom-nav-surface'),
               decoration: BoxDecoration(
-                color: background.withValues(alpha: .96),
+                color: background.withOpacity(.96),
                 border: Border(
                   top: BorderSide(
                     color: Theme.of(
                       context,
-                    ).colorScheme.primary.withValues(alpha: .18),
+                    ).colorScheme.primary.withOpacity(.18),
                   ),
                 ),
               ),
@@ -184,8 +184,13 @@ class _AppShellState extends State<AppShell> {
                 top: false,
                 child: NavigationBar(
                   selectedIndex: index > 4 ? 4 : index,
-                  onDestinationSelected: (value) =>
-                      setState(() => index = value),
+                  onDestinationSelected: (value) {
+                    if (value == 4) {
+                      _showMoreMenu(context);
+                      return;
+                    }
+                    setState(() => index = value);
+                  },
                   destinations: const [
                     NavigationDestination(
                       icon: Icon(Icons.dashboard_outlined),
@@ -249,6 +254,40 @@ class _AppShellState extends State<AppShell> {
       ),
     );
   }
+
+  void _showMoreMenu(BuildContext context) {
+    showModalBottomSheet<void>(
+      context: context,
+      showDragHandle: true,
+      builder: (sheetContext) {
+        return SafeArea(
+          child: ListView(
+            shrinkWrap: true,
+            children: [
+              const ListTile(title: Text('More')),
+              for (final destination in _moreDestinations)
+                ListTile(
+                  leading: Icon(destination.icon),
+                  title: Text(destination.label),
+                  onTap: () {
+                    Navigator.pop(sheetContext);
+                    setState(() => index = destination.index);
+                  },
+                ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+}
+
+class _MoreDestination {
+  const _MoreDestination(this.label, this.icon, this.index);
+
+  final String label;
+  final IconData icon;
+  final int index;
 }
 
 class _DrawerLink extends StatelessWidget {

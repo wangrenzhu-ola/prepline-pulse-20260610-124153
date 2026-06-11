@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import '../data/prep_seed_data.dart';
 import '../models/prep_models.dart';
 import '../state/prep_board_controller.dart';
-import '../state/prep_line_state.dart';
 import '../theme/prep_theme.dart';
 import '../widgets/media_widgets.dart';
 import '../widgets/operational_page.dart';
@@ -19,7 +18,7 @@ class BatchDetailDetailScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final controller = PrepLineScope.of(context);
+    final controller = PrepBoardScope.of(context);
     return AnimatedBuilder(
       animation: controller,
       builder: (context, _) {
@@ -135,7 +134,7 @@ class BatchDetailDetailScreen extends StatelessWidget {
                             ? null
                             : () {
                                 controller.selectBatch(batch.id);
-                                controller.resolveBlocked();
+                                controller.resolveBlocked(batch.id);
                               },
                         icon: const Icon(Icons.task_alt),
                         label: const Text('Resolve Blocked'),
@@ -176,7 +175,7 @@ class _LedgerRow extends StatelessWidget {
       decoration: BoxDecoration(
         border: Border(
           left: BorderSide(
-            color: PrepTheme.gold.withValues(alpha: .6),
+            color: PrepTheme.gold.withOpacity(.6),
             width: 3,
           ),
         ),
@@ -196,36 +195,5 @@ class _LedgerRow extends StatelessWidget {
         ),
       ),
     );
-  }
-}
-
-extension _BatchDetailDetailControllerActions on PrepLineController {
-  List<PrepLog> historyForSelectedBatch() {
-    return logs
-        .where((log) => log.batchId == selectedBatchId)
-        .toList()
-        .reversed
-        .toList();
-  }
-
-  PrepException? openExceptionForSelectedBatch() {
-    for (final exception in exceptions) {
-      if (exception.batchId == selectedBatchId && !exception.resolved) {
-        return exception;
-      }
-    }
-    return null;
-  }
-
-  void saveState() {
-    saveCurrentState();
-  }
-
-  void resolveBlocked() {
-    final exception = openExceptionForSelectedBatch();
-    if (exception == null) {
-      return;
-    }
-    resolveException(exception.id);
   }
 }

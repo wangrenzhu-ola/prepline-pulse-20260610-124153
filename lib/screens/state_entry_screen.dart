@@ -56,7 +56,7 @@ class _StateEntryScreenState extends State<StateEntryScreen> {
           title: 'Batch selector',
           child: DropdownButtonFormField<String>(
             key: const Key('state-entry-batch-selector'),
-            initialValue: controller.selectedBatchId,
+            value: controller.selectedBatchId,
             decoration: const InputDecoration(labelText: 'Active batch'),
             items: [
               for (final batch in controller.batches)
@@ -86,7 +86,7 @@ class _StateEntryScreenState extends State<StateEntryScreen> {
             children: [
               DropdownButtonFormField<String>(
                 key: const Key('state-entry-station-selector'),
-                initialValue: _selectedStation,
+                value: _selectedStation,
                 decoration: const InputDecoration(labelText: 'Station'),
                 items: [
                   for (final station in stations)
@@ -143,7 +143,11 @@ class _StateEntryScreenState extends State<StateEntryScreen> {
           key: const Key('state-entry-save-button'),
           onPressed: () {
             setState(() {
-              controller.saveState(nextState: _selectedState);
+              controller.saveState(
+                station: _selectedStation,
+                nextState: _selectedState,
+                note: noteController.text,
+              );
             });
           },
           icon: const Icon(Icons.save_outlined),
@@ -163,9 +167,9 @@ class _StateEntryScreenState extends State<StateEntryScreen> {
           child: Text(
             '${latestSavedState.savedAt} | '
             '${latestSavedState.batchId} | '
-            '${_selectedStation ?? latestSavedState.station} | '
+            '${latestSavedState.station} | '
             '${latestSavedState.state} | '
-            '${noteController.text.isEmpty ? latestSavedState.note : noteController.text}',
+            '${latestSavedState.note}',
             key: const Key('state-entry-log-readback'),
           ),
         ),

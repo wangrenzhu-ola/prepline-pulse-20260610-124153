@@ -48,7 +48,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
             children: [
               DropdownButtonFormField<String>(
                 key: const Key('settings-station-rule-dropdown'),
-                initialValue: _stationPreference,
+                value: _stationPreference,
                 decoration: const InputDecoration(
                   border: OutlineInputBorder(),
                   labelText: 'Station preference',
@@ -71,7 +71,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
               const SizedBox(height: 12),
               DropdownButtonFormField<String>(
                 key: const Key('settings-service-window-dropdown'),
-                initialValue: _serviceWindowDefault,
+                value: _serviceWindowDefault,
                 decoration: const InputDecoration(
                   border: OutlineInputBorder(),
                   labelText: 'Service window default',

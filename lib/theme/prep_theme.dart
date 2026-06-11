@@ -31,19 +31,20 @@ class PrepTheme {
         bodyMedium: TextStyle(fontSize: 14, height: 1.35),
         labelLarge: TextStyle(fontWeight: FontWeight.w700),
       ),
-      cardTheme: CardThemeData(
+      cardTheme: CardTheme(
         color: surface,
         elevation: 0,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(13),
-          side: BorderSide(color: gold.withValues(alpha: .18)),
+          side: BorderSide(color: gold.withOpacity(.18)),
         ),
       ),
       filledButtonTheme: FilledButtonThemeData(
         style: FilledButton.styleFrom(
           backgroundColor: gold,
           foregroundColor: Colors.black,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(13)),
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(13)),
         ),
       ),
     );
