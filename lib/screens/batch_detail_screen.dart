@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../models/prep_models.dart';
+import '../services/prepline_purchase_service.dart';
 import '../state/prep_board_controller.dart';
 import '../theme/prep_theme.dart';
 import '../widgets/media_widgets.dart';
@@ -24,6 +25,8 @@ class BatchDetailScreen extends StatelessWidget {
         final batch = controller.selectedBatch;
         final history = controller.historyForSelectedBatch();
         final exception = controller.openExceptionForSelectedBatch();
+        final canSpend =
+            controller.pulseCredits >= PulseWalletLedger.stateSaveCost;
 
         return OperationalPage(
           pageId: 'batch-detail',
@@ -59,12 +62,19 @@ class BatchDetailScreen extends StatelessWidget {
                     key: const Key('batch-detail-station-readback'),
                   ),
                   const SizedBox(height: 12),
+                  PrepCostNotice(
+                    key: const Key('batch-detail-save-cost-notice'),
+                    cost: PulseWalletLedger.stateSaveCost,
+                    balance: controller.pulseCredits,
+                  ),
+                  const SizedBox(height: 12),
                   SizedBox(
                     width: double.infinity,
                     child: FilledButton.icon(
                       key: const Key('batch-detail-save-state-button'),
-                      onPressed: () =>
-                          _saveReady(context, controller, batch.id),
+                      onPressed: canSpend
+                          ? () => _saveReady(context, controller, batch.id)
+                          : null,
                       icon: const Icon(Icons.check_circle_outline),
                       label: Text(controller.primarySaveActionLabel),
                     ),

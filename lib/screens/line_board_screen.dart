@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../models/prep_models.dart';
+import '../services/prepline_purchase_service.dart';
 import '../state/prep_board_controller.dart';
 import '../theme/prep_theme.dart';
 import '../widgets/operational_page.dart';
@@ -41,6 +42,7 @@ class _FocusBatchCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final batch = controller.selectedBatch;
     final statusColor = batch.blocked ? PrepTheme.error : PrepTheme.success;
+    final canSpend = controller.pulseCredits >= PulseWalletLedger.stateSaveCost;
     return Card(
       child: Padding(
         padding: const EdgeInsets.all(14),
@@ -98,11 +100,18 @@ class _FocusBatchCard extends StatelessWidget {
               },
             ),
             const SizedBox(height: 12),
+            PrepCostNotice(
+              key: const Key('line-board-save-cost-notice'),
+              cost: PulseWalletLedger.stateSaveCost,
+              balance: controller.pulseCredits,
+            ),
+            const SizedBox(height: 12),
             SizedBox(
               width: double.infinity,
               child: FilledButton.icon(
                 key: const Key('line-board-primary-save-button'),
-                onPressed: () => _saveReady(context, controller),
+                onPressed:
+                    canSpend ? () => _saveReady(context, controller) : null,
                 icon: const Icon(Icons.check_circle_outline),
                 label: Text(controller.primarySaveActionLabel),
               ),

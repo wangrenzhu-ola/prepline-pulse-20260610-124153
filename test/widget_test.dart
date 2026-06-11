@@ -175,6 +175,40 @@ void main() {
     expect(surfaceDecoration.color!.opacity, 1);
   });
 
+  testWidgets('credit cost is visible before core save actions', (
+    tester,
+  ) async {
+    tester.view.devicePixelRatio = 1;
+    tester.view.physicalSize = const Size(393, 852);
+    addTearDown(() {
+      tester.view.resetDevicePixelRatio();
+      tester.view.resetPhysicalSize();
+    });
+
+    await tester.pumpWidget(const PrepLinePulseApp());
+    await tester.pumpAndSettle();
+
+    expect(
+        find.byKey(const Key('line-board-save-cost-notice')), findsOneWidget);
+    expect(find.text('Spend 10 credits before saving'), findsOneWidget);
+    expect(find.textContaining('Balance after save:'), findsOneWidget);
+
+    await tester.tap(
+      find.descendant(
+        of: find.byType(NavigationBar),
+        matching: find.text('Batch'),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(
+      find.byKey(const Key('batch-detail-save-cost-notice')),
+      findsOneWidget,
+    );
+    expect(find.text('Spend 10 credits before saving'), findsOneWidget);
+    expect(find.textContaining('Balance after save:'), findsOneWidget);
+  });
+
   testWidgets('store page does not expose a settings action', (tester) async {
     tester.view.devicePixelRatio = 1;
     tester.view.physicalSize = const Size(393, 852);
@@ -272,6 +306,12 @@ void main() {
         300,
         scrollable: stateEntryScroll,
       );
+      expect(
+        find.byKey(const Key('state-entry-save-cost-notice')),
+        findsOneWidget,
+      );
+      expect(find.text('Spend 10 credits before saving'), findsOneWidget);
+      expect(find.textContaining('Balance after save:'), findsOneWidget);
       await tester
           .ensureVisible(find.byKey(const Key('state-entry-save-button')));
       await tester.pumpAndSettle();

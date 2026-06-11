@@ -5,6 +5,7 @@ import '../services/prepline_purchase_service.dart';
 import '../state/prep_board_controller.dart';
 import '../widgets/operational_page.dart' as operational;
 import '../widgets/pulse_balance_button.dart';
+import '../widgets/status_widgets.dart';
 
 // page_id source marker: state-entry
 // page_id: state-entry | route_name: /state-entry | widget_class: StateEntryScreen | state_key: stateEntryState
@@ -48,6 +49,7 @@ class _StateEntryScreenState extends State<StateEntryScreen> {
         .map((batch) => batch.station)
         .toSet()
         .toList(growable: false);
+    final canSpend = controller.pulseCredits >= PulseWalletLedger.stateSaveCost;
 
     return operational.OperationalPage(
       pageId: 'state-entry',
@@ -129,16 +131,15 @@ class _StateEntryScreenState extends State<StateEntryScreen> {
                 ),
               ),
               const SizedBox(height: 12),
-              Row(
-                children: [
-                  Expanded(
-                    child: Text(
-                      '${PulseWalletLedger.stateSaveCost} prep credits per save.',
-                      key: const Key('state-entry-spend-notice'),
-                    ),
-                  ),
-                  const PulseBalanceButton(compact: true),
-                ],
+              PrepCostNotice(
+                key: const Key('state-entry-save-cost-notice'),
+                cost: PulseWalletLedger.stateSaveCost,
+                balance: controller.pulseCredits,
+              ),
+              const SizedBox(height: 8),
+              const Align(
+                alignment: Alignment.centerRight,
+                child: PulseBalanceButton(compact: true),
               ),
               const SizedBox(height: 8),
               Text(
@@ -151,23 +152,25 @@ class _StateEntryScreenState extends State<StateEntryScreen> {
                 width: double.infinity,
                 child: FilledButton.icon(
                   key: const Key('state-entry-save-button'),
-                  onPressed: () {
-                    setState(() {
-                      controller.saveState(
-                        station: _selectedStation,
-                        nextState: _selectedState,
-                        note: noteController.text,
-                      );
-                    });
-                    ScaffoldMessenger.of(context)
-                      ..hideCurrentSnackBar()
-                      ..showSnackBar(
-                        SnackBar(
-                          content: Text(controller.visibleConfirmation),
-                          behavior: SnackBarBehavior.floating,
-                        ),
-                      );
-                  },
+                  onPressed: canSpend
+                      ? () {
+                          setState(() {
+                            controller.saveState(
+                              station: _selectedStation,
+                              nextState: _selectedState,
+                              note: noteController.text,
+                            );
+                          });
+                          ScaffoldMessenger.of(context)
+                            ..hideCurrentSnackBar()
+                            ..showSnackBar(
+                              SnackBar(
+                                content: Text(controller.visibleConfirmation),
+                                behavior: SnackBarBehavior.floating,
+                              ),
+                            );
+                        }
+                      : null,
                   icon: const Icon(Icons.save_outlined),
                   label: Text(
                     controller.hasProofPhoto

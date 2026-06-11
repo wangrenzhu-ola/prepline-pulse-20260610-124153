@@ -45,3 +45,5 @@ the large image area shows an upload empty state instead.
 - Link the uploaded proof photo to each state-save record when a photo exists.
 - Keep proof-card export visually secondary to the state-save action, because
   export does not create an app record.
+- Show the 10-credit cost and post-save balance directly before every
+  credit-spending save button. A post-save confirmation alone is not enough.

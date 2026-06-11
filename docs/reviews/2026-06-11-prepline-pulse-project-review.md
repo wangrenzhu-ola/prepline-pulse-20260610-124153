@@ -326,3 +326,21 @@ build with a Flutter SDK that includes Dart 3.11.5 or newer.
 6. Normalize theme usage and check contrast on all light/dark mixed surfaces.
 7. Re-run `flutter analyze`, `flutter test`, and a simulator build under a
    compatible Flutter/Dart SDK.
+
+## Follow-up Fix: Pre-save Credit Cost Disclosure
+
+Screenshot review found that the app only made the 10-credit cost obvious after
+the user had already saved and spent credits. Board showed the remaining balance
+as a chip, and State Entry used a low-emphasis text row, but neither gave the
+primary save action a clear pre-spend disclosure.
+
+Changes made:
+
+- Added a shared `PrepCostNotice` component with warning/error styling,
+  semantics, the fixed cost, and the projected balance after save.
+- Placed that notice directly before the credit-spending save button on Board,
+  Batch Detail, and State Entry.
+- Disabled those save buttons when the current balance is below the fixed
+  10-credit cost.
+- Updated the interaction contract, IAP tracker, feature matrix, and tests so
+  future credit-spending actions cannot rely on post-save confirmation alone.

@@ -15,7 +15,9 @@ Verification: `flutter pub get`, `dart format lib test`, `flutter analyze`, `flu
 
 Risks: Product IDs must remain verbatim; purchase stream duplicate callbacks must not double-credit; balance must refresh globally; save-state spend point must cost exactly 10; product cards must not overflow on small screens.
 
-Unique spend point: `StateEntryScreen` save action, fixed cost 10 units.
+Unique spend point: `PrepBoardController.saveState`, fixed cost 10 units. Board,
+Batch, and State Entry are entry surfaces into that same spend point and must
+show the 10-credit cost before the save button.
 
 ## Next Actions
 
@@ -35,7 +37,7 @@ Unique spend point: `StateEntryScreen` save action, fixed cost 10 units.
 | virtual_currency_persistence | passed | `SharedPreferences` balance ledger |
 | single_spend_point_bound | passed | `PrepBoardController.saveState`; `PreplineStateStore.writeSession` |
 | spend_point_cost_fixed_10 | passed | `PulseWalletLedger.stateSaveCost` |
-| spend_point_notice_visible | passed | Board, Batch, and State Entry save surfaces |
+| spend_point_notice_visible | passed | Board, Batch, and State Entry show a pre-save cost notice with post-save balance |
 | balance_refresh_global | passed | `PrepBoardController` notifies all scoped pages |
 | balance_entry_navigation | passed | Board balance button, Store nav item, State Entry balance button |
 | iap_entry_accessible_from_normal_flow | passed | main Board page exposes balance entry; AppShell exposes Store |
@@ -50,7 +52,7 @@ Unique spend point: `StateEntryScreen` save action, fixed cost 10 units.
 - purchase_flow_complete: card tap opens confirmation dialog before `buyConsumable(autoConsume: true)`.
 - transaction_cleanup_complete: purchased, restored, error, and canceled terminal states finish pending platform transactions.
 - coin_delivery_idempotent: persisted delivery keys prevent duplicate crediting after repeated callbacks.
-- single_spend_point_bound: state save is the only credit spend point, costs exactly 10, and writes the saved record to local app storage.
+- single_spend_point_bound: state save is the only credit spend point, costs exactly 10, writes the saved record to local app storage, and must expose the cost before the save action on every entry surface.
 - balance_entry_navigation: Board AppBar/body expose balance buttons; AppShell exposes Store as a primary destination.
 - store_policy_links: Store exposes User Agreement and Privacy Policy without reintroducing the removed settings icon.
 - verification: `flutter analyze`; `flutter test`; `flutter build ios --simulator`.
