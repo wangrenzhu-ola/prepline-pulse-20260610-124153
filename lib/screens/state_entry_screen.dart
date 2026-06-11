@@ -45,10 +45,7 @@ class _StateEntryScreenState extends State<StateEntryScreen> {
     final selectedBatch = controller.selectedBatch;
     final PrepLog latestSavedState = controller.latestSavedState;
     final noteController = _noteController!;
-    final stations = controller.batches
-        .map((batch) => batch.station)
-        .toSet()
-        .toList(growable: false);
+    final stations = controller.stationNames;
     final canSpend = controller.pulseCredits >= PulseWalletLedger.stateSaveCost;
 
     return operational.OperationalPage(

@@ -1,0 +1,448 @@
+{
+  "appPolicies": {
+    "eula": "https://qavix.teltaj.com/ServiceAgreement.html",
+    "policies": [
+      {
+        "locale": "en_US",
+        "policyText": "",
+        "policyURL": "https://qavix.teltaj.com/privacy-summary.html"
+      }
+    ]
+  },
+  "identifier": "20708076",
+  "nonRenewingSubscriptions": [],
+  "products": [
+    {
+      "displayPrice": "0.99",
+      "familyShareable": false,
+      "internalID": "TELTA_00",
+      "localizations": [
+        {
+          "description": "100 Coins",
+          "displayName": "Telta With Coins",
+          "locale": "en_US"
+        }
+      ],
+      "productID": "850221000",
+      "referenceName": "Telta-00",
+      "type": "Consumable"
+    },
+    {
+      "displayPrice": "3.99",
+      "familyShareable": false,
+      "internalID": "TELTA_01",
+      "localizations": [
+        {
+          "description": "398 Coins",
+          "displayName": "Telta With Coins",
+          "locale": "en_US"
+        }
+      ],
+      "productID": "850221001",
+      "referenceName": "Telta-01",
+      "type": "Consumable"
+    },
+    {
+      "displayPrice": "4.99",
+      "familyShareable": false,
+      "internalID": "TELTA_02",
+      "localizations": [
+        {
+          "description": "500 Coins",
+          "displayName": "Telta With Coins",
+          "locale": "en_US"
+        }
+      ],
+      "productID": "850221002",
+      "referenceName": "Telta-02",
+      "type": "Consumable"
+    },
+    {
+      "displayPrice": "5.99",
+      "familyShareable": false,
+      "internalID": "TELTA_03",
+      "localizations": [
+        {
+          "description": "600 Coins",
+          "displayName": "Telta With Coins",
+          "locale": "en_US"
+        }
+      ],
+      "productID": "850221003",
+      "referenceName": "Telta-03",
+      "type": "Consumable"
+    },
+    {
+      "displayPrice": "8.99",
+      "familyShareable": false,
+      "internalID": "TELTA_04",
+      "localizations": [
+        {
+          "description": "900 Coins",
+          "displayName": "Telta With Coins",
+          "locale": "en_US"
+        }
+      ],
+      "productID": "850221004",
+      "referenceName": "Telta-04",
+      "type": "Consumable"
+    },
+    {
+      "displayPrice": "9.99",
+      "familyShareable": false,
+      "internalID": "TELTA_05",
+      "localizations": [
+        {
+          "description": "1160 Coins",
+          "displayName": "Telta With Coins",
+          "locale": "en_US"
+        }
+      ],
+      "productID": "850221005",
+      "referenceName": "Telta-05",
+      "type": "Consumable"
+    },
+    {
+      "displayPrice": "11.99",
+      "familyShareable": false,
+      "internalID": "TELTA_06",
+      "localizations": [
+        {
+          "description": "1200 Coins",
+          "displayName": "Telta With Coins",
+          "locale": "en_US"
+        }
+      ],
+      "productID": "850221006",
+      "referenceName": "Telta-06",
+      "type": "Consumable"
+    },
+    {
+      "displayPrice": "12.99",
+      "familyShareable": false,
+      "internalID": "TELTA_07",
+      "localizations": [
+        {
+          "description": "1560 Coins",
+          "displayName": "Telta With Coins",
+          "locale": "en_US"
+        }
+      ],
+      "productID": "850221007",
+      "referenceName": "Telta-07",
+      "type": "Consumable"
+    },
+    {
+      "displayPrice": "15.99",
+      "familyShareable": false,
+      "internalID": "TELTA_08",
+      "localizations": [
+        {
+          "description": "1980 Coins",
+          "displayName": "Telta With Coins",
+          "locale": "en_US"
+        }
+      ],
+      "productID": "850221008",
+      "referenceName": "Telta-08",
+      "type": "Consumable"
+    },
+    {
+      "displayPrice": "19.99",
+      "familyShareable": false,
+      "internalID": "TELTA_09",
+      "localizations": [
+        {
+          "description": "2500 Coins",
+          "displayName": "Telta With Coins",
+          "locale": "en_US"
+        }
+      ],
+      "productID": "850221009",
+      "referenceName": "Telta-09",
+      "type": "Consumable"
+    },
+    {
+      "displayPrice": "24.99",
+      "familyShareable": false,
+      "internalID": "TELTA_10",
+      "localizations": [
+        {
+          "description": "3160 Coins",
+          "displayName": "Telta With Coins",
+          "locale": "en_US"
+        }
+      ],
+      "productID": "850221010",
+      "referenceName": "Telta-10",
+      "type": "Consumable"
+    },
+    {
+      "displayPrice": "29.99",
+      "familyShareable": false,
+      "internalID": "TELTA_11",
+      "localizations": [
+        {
+          "description": "3900 Coins",
+          "displayName": "Telta With Coins",
+          "locale": "en_US"
+        }
+      ],
+      "productID": "850221011",
+      "referenceName": "Telta-11",
+      "type": "Consumable"
+    },
+    {
+      "displayPrice": "39.99",
+      "familyShareable": false,
+      "internalID": "TELTA_12",
+      "localizations": [
+        {
+          "description": "5600 Coins",
+          "displayName": "Telta With Coins",
+          "locale": "en_US"
+        }
+      ],
+      "productID": "850221012",
+      "referenceName": "Telta-12",
+      "type": "Consumable"
+    },
+    {
+      "displayPrice": "49.99",
+      "familyShareable": false,
+      "internalID": "TELTA_13",
+      "localizations": [
+        {
+          "description": "7500 Coins",
+          "displayName": "Telta With Coins",
+          "locale": "en_US"
+        }
+      ],
+      "productID": "850221013",
+      "referenceName": "Telta-13",
+      "type": "Consumable"
+    },
+    {
+      "displayPrice": "79.99",
+      "familyShareable": false,
+      "internalID": "TELTA_14",
+      "localizations": [
+        {
+          "description": "13600 Coins",
+          "displayName": "Telta With Coins",
+          "locale": "en_US"
+        }
+      ],
+      "productID": "850221014",
+      "referenceName": "Telta-14",
+      "type": "Consumable"
+    },
+    {
+      "displayPrice": "99.99",
+      "familyShareable": false,
+      "internalID": "TELTA_15",
+      "localizations": [
+        {
+          "description": "18800 Coins",
+          "displayName": "Telta With Coins",
+          "locale": "en_US"
+        }
+      ],
+      "productID": "850221015",
+      "referenceName": "Telta-15",
+      "type": "Consumable"
+    },
+    {
+      "displayPrice": "1.99",
+      "familyShareable": false,
+      "internalID": "TELTA_16",
+      "localizations": [
+        {
+          "description": "580 Coins - Breaking price",
+          "displayName": "Telta With Coins-Breaking price",
+          "locale": "en_US"
+        }
+      ],
+      "productID": "850221016",
+      "referenceName": "Telta-16",
+      "type": "Consumable"
+    },
+    {
+      "displayPrice": "2.99",
+      "familyShareable": false,
+      "internalID": "TELTA_17",
+      "localizations": [
+        {
+          "description": "750 Coins - Breaking price",
+          "displayName": "Telta With Coins-Breaking price",
+          "locale": "en_US"
+        }
+      ],
+      "productID": "850221017",
+      "referenceName": "Telta-17",
+      "type": "Consumable"
+    },
+    {
+      "displayPrice": "4.99",
+      "familyShareable": false,
+      "internalID": "TELTA_18",
+      "localizations": [
+        {
+          "description": "1080 Coins - Breaking price",
+          "displayName": "Telta With Coins-Breaking price",
+          "locale": "en_US"
+        }
+      ],
+      "productID": "850221018",
+      "referenceName": "Telta-18",
+      "type": "Consumable"
+    },
+    {
+      "displayPrice": "5.99",
+      "familyShareable": false,
+      "internalID": "TELTA_19",
+      "localizations": [
+        {
+          "description": "1280 Coins - Breaking price",
+          "displayName": "Telta With Coins-Breaking price",
+          "locale": "en_US"
+        }
+      ],
+      "productID": "850221019",
+      "referenceName": "Telta-19",
+      "type": "Consumable"
+    },
+    {
+      "displayPrice": "9.99",
+      "familyShareable": false,
+      "internalID": "TELTA_20",
+      "localizations": [
+        {
+          "description": "2100 Coins - Breaking price",
+          "displayName": "Telta With Coins-Breaking price",
+          "locale": "en_US"
+        }
+      ],
+      "productID": "850221020",
+      "referenceName": "Telta-20",
+      "type": "Consumable"
+    },
+    {
+      "displayPrice": "11.99",
+      "familyShareable": false,
+      "internalID": "TELTA_21",
+      "localizations": [
+        {
+          "description": "2560 Coins - Breaking price",
+          "displayName": "Telta With Coins-Breaking price",
+          "locale": "en_US"
+        }
+      ],
+      "productID": "850221021",
+      "referenceName": "Telta-21",
+      "type": "Consumable"
+    },
+    {
+      "displayPrice": "12.99",
+      "familyShareable": false,
+      "internalID": "TELTA_22",
+      "localizations": [
+        {
+          "description": "2780 Coins - Breaking price",
+          "displayName": "Telta With Coins-Breaking price",
+          "locale": "en_US"
+        }
+      ],
+      "productID": "850221022",
+      "referenceName": "Telta-22",
+      "type": "Consumable"
+    },
+    {
+      "displayPrice": "19.99",
+      "familyShareable": false,
+      "internalID": "TELTA_23",
+      "localizations": [
+        {
+          "description": "4360 Coins - Breaking price",
+          "displayName": "Telta With Coins-Breaking price",
+          "locale": "en_US"
+        }
+      ],
+      "productID": "850221023",
+      "referenceName": "Telta-23",
+      "type": "Consumable"
+    },
+    {
+      "displayPrice": "39.99",
+      "familyShareable": false,
+      "internalID": "TELTA_24",
+      "localizations": [
+        {
+          "description": "7500 Coins - Breaking price",
+          "displayName": "Telta With Coins-Breaking price",
+          "locale": "en_US"
+        }
+      ],
+      "productID": "850221024",
+      "referenceName": "Telta-24",
+      "type": "Consumable"
+    }
+  ],
+  "settings": {
+    "_failTransactionsEnabled": false,
+    "_locale": "en_US",
+    "_storefront": "USA",
+    "_storeKitErrors": [
+      {
+        "current": null,
+        "enabled": false,
+        "name": "Load Products"
+      },
+      {
+        "current": null,
+        "enabled": false,
+        "name": "Purchase"
+      },
+      {
+        "current": null,
+        "enabled": false,
+        "name": "Verification"
+      },
+      {
+        "current": null,
+        "enabled": false,
+        "name": "App Store Sync"
+      },
+      {
+        "current": null,
+        "enabled": false,
+        "name": "Subscription Status"
+      },
+      {
+        "current": null,
+        "enabled": false,
+        "name": "App Transaction"
+      },
+      {
+        "current": null,
+        "enabled": false,
+        "name": "Manage Subscriptions Sheet"
+      },
+      {
+        "current": null,
+        "enabled": false,
+        "name": "Refund Request Sheet"
+      },
+      {
+        "current": null,
+        "enabled": false,
+        "name": "Offer Code Redeem Sheet"
+      }
+    ]
+  },
+  "subscriptionGroups": [],
+  "version": {
+    "major": 4,
+    "minor": 0
+  }
+}

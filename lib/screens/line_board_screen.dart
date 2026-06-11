@@ -4,6 +4,7 @@ import '../models/prep_models.dart';
 import '../services/prepline_purchase_service.dart';
 import '../state/prep_board_controller.dart';
 import '../theme/prep_theme.dart';
+import '../widgets/batch_setup_fields.dart';
 import '../widgets/operational_page.dart';
 import '../widgets/pulse_balance_button.dart';
 import '../widgets/status_widgets.dart';
@@ -79,25 +80,9 @@ class _FocusBatchCard extends StatelessWidget {
               ],
             ),
             const SizedBox(height: 12),
-            DropdownButtonFormField<String>(
-              value: controller.selectedBatchId,
-              isExpanded: true,
-              decoration: const InputDecoration(labelText: 'Batch'),
-              items: [
-                for (final batch in controller.batches)
-                  DropdownMenuItem(
-                    value: batch.id,
-                    child: Text(
-                      '${batch.id} ${batch.name}',
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                  ),
-              ],
-              onChanged: (value) {
-                if (value != null) {
-                  controller.selectBatch(value);
-                }
-              },
+            BatchSetupFields(
+              controller: controller,
+              keyPrefix: 'line-board',
             ),
             const SizedBox(height: 12),
             PrepCostNotice(
@@ -189,14 +174,14 @@ class _StationStrip extends StatelessWidget {
                 separatorBuilder: (_, __) => const SizedBox(width: 10),
                 itemBuilder: (context, index) {
                   final station = controller.stations[index];
-                  final batch = controller.batches.firstWhere(
-                    (item) => item.id == station.activeBatchId,
-                  );
+                  final batch = controller.batchForId(station.activeBatchId);
                   return _StationTile(
                     station: station,
                     batch: batch,
-                    selected: batch.id == controller.selectedBatchId,
-                    onTap: () => controller.selectBatch(batch.id),
+                    selected: batch?.id == controller.selectedBatchId,
+                    onTap: batch == null
+                        ? null
+                        : () => controller.selectBatch(batch.id),
                   );
                 },
               ),
@@ -217,13 +202,18 @@ class _StationTile extends StatelessWidget {
   });
 
   final StationStatus station;
-  final PrepBatch batch;
+  final PrepBatch? batch;
   final bool selected;
-  final VoidCallback onTap;
+  final VoidCallback? onTap;
 
   @override
   Widget build(BuildContext context) {
-    final statusColor = batch.blocked ? PrepTheme.error : PrepTheme.success;
+    final activeBatch = batch;
+    final statusColor = activeBatch?.blocked ?? false
+        ? PrepTheme.error
+        : activeBatch == null
+            ? PrepTheme.warning
+            : PrepTheme.success;
     return SizedBox(
       width: 178,
       child: InkWell(
@@ -258,10 +248,13 @@ class _StationTile extends StatelessWidget {
                   ],
                 ),
                 const SizedBox(height: 8),
-                PrepStatusPill(batch.state, color: statusColor),
+                PrepStatusPill(
+                  activeBatch?.state ?? station.state,
+                  color: statusColor,
+                ),
                 const Spacer(),
                 Text(
-                  batch.id,
+                  activeBatch?.id ?? 'No batch',
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                 ),

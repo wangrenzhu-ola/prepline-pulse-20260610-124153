@@ -22,7 +22,8 @@ allowed_to_close_stage3_branch: yes
 ## Notes
 
 - IAP is lazy and does not touch StoreKit during startup.
-- Product catalog uses the default 27 IDs verbatim and Store renders all 27 product identifiers.
+- Product catalog uses the user-supplied 25 IDs verbatim and Store renders all 25 product identifiers.
+- Purchase preparation, success, and failure feedback hides product IDs from user-facing readbacks.
 - Balance persistence and delivery-key idempotency are covered by tests.
 - The 10-credit spend point writes a local saved record, links the uploaded proof photo path when present, and is disclosed before every save button that can spend credits.
 - Store entry is reachable from the main flow and app navigation.

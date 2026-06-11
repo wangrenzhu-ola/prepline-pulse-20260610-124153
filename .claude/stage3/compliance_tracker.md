@@ -25,7 +25,7 @@ Risks: Permission copy must match prep-line media capture/import/export usage; i
 | Item | Status | Evidence |
 | --- | --- | --- |
 | att_requested_after_first_frame | passed | `lib/main.dart`; `ios/Runner/SceneDelegate.swift`; `simctl launch` |
-| att_prefixed_storage_key | passed | `lib/main.dart` uses `prepLinePulseAttRequested` |
+| att_prefixed_storage_key | passed | `lib/main.dart` uses `teltaAttRequested` |
 | scene_delegate_plugin_registration | passed | Swift plugins register against `flutterViewController`, preventing nil registrar launch crashes |
 | app_resources_packaged | passed | `Assets.car`, app icons, Main storyboard, and LaunchScreen storyboard are present in `Runner.app` |
 | tracking_usage_description_localized | passed | `ios/Runner/Info.plist` |
@@ -43,7 +43,7 @@ Risks: Permission copy must match prep-line media capture/import/export usage; i
 
 ## Compliance Contract Evidence Map
 
-- att_requested_after_first_frame: `main()` renders `PrepLinePulseApp`, then schedules `prepLinePulseResolveTrackingAuthorization()` with a post-frame callback.
+- att_requested_after_first_frame: `main()` renders `TeltaApp`, then schedules `teltaResolveTrackingAuthorization()` with a post-frame callback.
 - scene_delegate_plugin_registration: `SceneDelegate` creates the `FlutterViewController`, registers the custom ATT MethodChannel, and then calls `GeneratedPluginRegistrant.register(with: flutterViewController)`.
 - app_resources_packaged: `ios/Runner.xcodeproj/project.pbxproj` includes Main storyboard, Assets.xcassets, and LaunchScreen storyboard in the Runner resources phase.
 - permission_keys_complete: Info.plist contains ATT, camera, microphone, photo read, and photo add descriptions.

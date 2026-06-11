@@ -10,50 +10,50 @@ import 'theme/app_theme.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  PrepLineTheme.ensureLinked();
-  runApp(const PrepLinePulseApp());
-  prepLinePulseScheduleTrackingAuthorization();
+  TeltaTheme.ensureLinked();
+  runApp(const TeltaApp());
+  teltaScheduleTrackingAuthorization();
 }
 
-void prepLinePulseScheduleTrackingAuthorization() {
+void teltaScheduleTrackingAuthorization() {
   if (!Platform.isIOS) {
     return;
   }
   WidgetsBinding.instance.addPostFrameCallback((_) {
-    unawaited(prepLinePulseResolveTrackingAuthorization());
+    unawaited(teltaResolveTrackingAuthorization());
   });
 }
 
-Future<void> prepLinePulseResolveTrackingAuthorization() async {
+Future<void> teltaResolveTrackingAuthorization() async {
   if (!Platform.isIOS) {
     return;
   }
   try {
     final preferences = await SharedPreferences.getInstance();
-    const prepLinePulseAttRequestedKey = 'prepLinePulseAttRequested';
-    if (preferences.getBool(prepLinePulseAttRequestedKey) ?? false) {
+    const teltaAttRequestedKey = 'teltaAttRequested';
+    if (preferences.getBool(teltaAttRequestedKey) ?? false) {
       return;
     }
 
-    const prepLinePulseAttRetryLimit = 23;
-    for (var prepLinePulseAttAttempt = 0;
-        prepLinePulseAttAttempt < prepLinePulseAttRetryLimit;
-        prepLinePulseAttAttempt += 1) {
-      final status = await prepLinePulseTrackingStatus();
+    const teltaAttRetryLimit = 23;
+    for (var teltaAttAttempt = 0;
+        teltaAttAttempt < teltaAttRetryLimit;
+        teltaAttAttempt += 1) {
+      final status = await teltaTrackingStatus();
       if (status == null) {
         return;
       }
-      if (status != PrepLinePulseTrackingStatus.notDetermined) {
-        await preferences.setBool(prepLinePulseAttRequestedKey, true);
+      if (status != TeltaTrackingStatus.notDetermined) {
+        await preferences.setBool(teltaAttRequestedKey, true);
         return;
       }
       await Future<void>.delayed(const Duration(milliseconds: 200));
-      final requested = await prepLinePulseRequestTrackingAuthorization();
+      final requested = await teltaRequestTrackingAuthorization();
       if (requested == null) {
         return;
       }
-      if (requested != PrepLinePulseTrackingStatus.notDetermined) {
-        await preferences.setBool(prepLinePulseAttRequestedKey, true);
+      if (requested != TeltaTrackingStatus.notDetermined) {
+        await preferences.setBool(teltaAttRequestedKey, true);
         return;
       }
       await Future<void>.delayed(const Duration(milliseconds: 150));
@@ -63,9 +63,9 @@ Future<void> prepLinePulseResolveTrackingAuthorization() async {
   }
 }
 
-Future<PrepLinePulseTrackingStatus?> prepLinePulseTrackingStatus() async {
+Future<TeltaTrackingStatus?> teltaTrackingStatus() async {
   try {
-    return await PrepLinePulseTrackingAuthorization.status()
+    return await TeltaTrackingAuthorization.status()
         .timeout(const Duration(milliseconds: 700));
   } on TimeoutException {
     return null;
@@ -74,10 +74,9 @@ Future<PrepLinePulseTrackingStatus?> prepLinePulseTrackingStatus() async {
   }
 }
 
-Future<PrepLinePulseTrackingStatus?>
-    prepLinePulseRequestTrackingAuthorization() async {
+Future<TeltaTrackingStatus?> teltaRequestTrackingAuthorization() async {
   try {
-    return await PrepLinePulseTrackingAuthorization.request()
+    return await TeltaTrackingAuthorization.request()
         .timeout(const Duration(milliseconds: 900));
   } on TimeoutException {
     return null;

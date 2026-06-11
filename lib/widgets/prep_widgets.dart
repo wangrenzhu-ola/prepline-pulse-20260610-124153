@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 
+import '../config/app_brand.dart';
 import '../models/prep_models.dart';
 import '../screens/about_screen.dart';
 import '../screens/exception_queue_screen.dart';
@@ -25,7 +26,7 @@ class PrepScaffold extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('PrepLine Pulse'),
+        title: const Text(AppBrand.name),
         backgroundColor: PrepTheme.background,
       ),
       body: DecoratedBox(
@@ -292,7 +293,7 @@ class MediaRecordPanel extends StatelessWidget {
     }
     final message = controller.mediaReadback ??
         (exported
-            ? 'Exported proof card to Photos album: PrepLine Pulse.'
+            ? 'Exported proof card to Photos album: ${AppBrand.photosAlbumName}.'
             : 'Export failed.');
     ScaffoldMessenger.of(context)
       ..hideCurrentSnackBar()

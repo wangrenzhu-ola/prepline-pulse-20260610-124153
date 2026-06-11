@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../config/app_brand.dart';
 import '../state/prep_board_controller.dart';
 import '../theme/app_theme.dart';
 import 'about_screen.dart';
@@ -14,14 +15,14 @@ import 'settings_screen.dart';
 import 'state_entry_screen.dart';
 import 'station_timeline_screen.dart';
 
-class PrepLinePulseApp extends StatefulWidget {
-  const PrepLinePulseApp({super.key});
+class TeltaApp extends StatefulWidget {
+  const TeltaApp({super.key});
 
   @override
-  State<PrepLinePulseApp> createState() => _PrepLinePulseAppState();
+  State<TeltaApp> createState() => _TeltaAppState();
 }
 
-class _PrepLinePulseAppState extends State<PrepLinePulseApp> {
+class _TeltaAppState extends State<TeltaApp> {
   late final PrepBoardController boardController;
 
   @override
@@ -41,9 +42,9 @@ class _PrepLinePulseAppState extends State<PrepLinePulseApp> {
     return PrepBoardScope(
       controller: boardController,
       child: MaterialApp(
-        title: 'PrepLine Pulse',
+        title: AppBrand.name,
         debugShowCheckedModeBanner: false,
-        theme: PrepLineTheme.dark(),
+        theme: TeltaTheme.dark(),
         home: const AppShell(),
         routes: {
           LineBoardScreen.routeName: (_) => const AppShell(initialIndex: 0),

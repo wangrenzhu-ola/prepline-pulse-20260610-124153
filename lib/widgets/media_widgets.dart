@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
+import '../config/app_brand.dart';
 import '../models/prep_models.dart';
 import '../state/prep_board_controller.dart';
 import '../theme/prep_theme.dart';
@@ -144,7 +145,7 @@ class PrimaryProofHero extends StatelessWidget {
     }
     final message = controller.mediaReadback ??
         (exported
-            ? 'Exported proof card to Photos album: PrepLine Pulse.'
+            ? 'Exported proof card to Photos album: ${AppBrand.photosAlbumName}.'
             : 'Export failed.');
     ScaffoldMessenger.of(context)
       ..hideCurrentSnackBar()

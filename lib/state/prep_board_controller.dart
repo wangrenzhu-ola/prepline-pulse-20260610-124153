@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:path/path.dart' as path;
 
+import '../config/app_brand.dart';
 import '../data/prep_repository.dart';
 import '../data/prep_seed_data.dart';
 import '../models/prep_models.dart';
@@ -75,6 +76,14 @@ class PrepBoardController extends ChangeNotifier {
   List<MediaRecord> get mediaRecords => List.unmodifiable(_media);
   PrepLog get latestSavedState => _latestSavedState;
   PrepLog get latestLog => _latestSavedState;
+  List<String> get stationNames {
+    final names = <String>{
+      ..._stations.map((station) => station.station),
+      ..._batches.map((batch) => batch.station),
+    };
+    return names.where((name) => name.trim().isNotEmpty).toList();
+  }
+
   bool get hasProofPhoto => primaryUserMediaFor('line-board') != null;
   MediaRecord get media {
     final lineBoardMedia = mediaFor('line-board');
@@ -99,6 +108,15 @@ class PrepBoardController extends ChangeNotifier {
   PrepBatch get selectedBatch =>
       _batches.firstWhere((batch) => batch.id == selectedBatchId);
 
+  PrepBatch? batchForId(String batchId) {
+    for (final batch in _batches) {
+      if (batch.id == batchId) {
+        return batch;
+      }
+    }
+    return null;
+  }
+
   static const _proofTargets = <String>[
     'line-board',
     'batch-detail',
@@ -113,6 +131,33 @@ class PrepBoardController extends ChangeNotifier {
     final batch = selectedBatch;
     visibleConfirmation =
         'Selected ${batch.id} at ${batch.station}; owner ${batch.owner}.';
+    notifyListeners();
+  }
+
+  void updateSelectedBatchDetails({
+    String? station,
+    String? owner,
+  }) {
+    final index = _batches.indexWhere((batch) => batch.id == selectedBatchId);
+    if (index == -1) {
+      return;
+    }
+    final current = _batches[index];
+    final nextStation = _cleanText(station) ?? current.station;
+    final nextOwner = _cleanText(owner) ?? current.owner;
+    if (current.station == nextStation && current.owner == nextOwner) {
+      return;
+    }
+    final updated = current.copyWith(
+      station: nextStation,
+      owner: nextOwner,
+    );
+    _batches[index] = updated;
+    _syncStationStatusFor(updated);
+    _syncExceptionOwnerFor(updated);
+    visibleConfirmation =
+        'Updated ${updated.id}: ${updated.station}; owner ${updated.owner}.';
+    _queueSessionPersistence();
     notifyListeners();
   }
 
@@ -146,14 +191,7 @@ class PrepBoardController extends ChangeNotifier {
       note: savedNote,
     );
     _batches[index] = updated;
-    final stationIndex =
-        _stations.indexWhere((station) => station.activeBatchId == updated.id);
-    if (stationIndex != -1) {
-      _stations[stationIndex] = _stations[stationIndex].copyWith(
-        state: nextState,
-        blocked: blocked,
-      );
-    }
+    _syncStationStatusFor(updated);
     _latestSavedState = PrepLog(
       batchId: updated.id,
       batchName: updated.name,
@@ -185,15 +223,8 @@ class PrepBoardController extends ChangeNotifier {
       blocked: false,
       note: 'Blocker cleared by owner.',
     );
+    _syncStationStatusFor(_batches[index]);
     _resolveExceptionForBatch(batchId);
-    final stationIndex =
-        _stations.indexWhere((station) => station.activeBatchId == batchId);
-    if (stationIndex != -1) {
-      _stations[stationIndex] = _stations[stationIndex].copyWith(
-        state: 'Ready',
-        blocked: false,
-      );
-    }
     selectedBatchId = batchId;
     visibleConfirmation = 'Resolved blocked batch $batchId.';
     _latestSavedState = PrepLog(
@@ -345,7 +376,8 @@ class PrepBoardController extends ChangeNotifier {
         note: batch.note,
         exportedAt: _clockLabel(),
       );
-      mediaReadback = 'Exported proof card to Photos album: PrepLine Pulse.';
+      mediaReadback =
+          'Exported proof card to Photos album: ${AppBrand.photosAlbumName}.';
       return true;
     } catch (_) {
       mediaReadback =
@@ -384,7 +416,7 @@ class PrepBoardController extends ChangeNotifier {
 
   Future<void> purchasePulseProduct(PulseStoreProduct product) async {
     activePurchaseProductId = product.id;
-    storeReadback = 'Preparing ${product.id}.';
+    storeReadback = 'Preparing credit pack.';
     notifyListeners();
     final purchaseService = _purchaseService ??=
         PreplinePurchaseService(walletLedger: _walletLedger);
@@ -509,6 +541,68 @@ class PrepBoardController extends ChangeNotifier {
     _resolveExceptionForBatch(batch.id);
   }
 
+  void _syncExceptionOwnerFor(PrepBatch batch) {
+    for (var index = 0; index < _exceptions.length; index += 1) {
+      final exception = _exceptions[index];
+      if (exception.batchId != batch.id || exception.resolved) {
+        continue;
+      }
+      _exceptions[index] = PrepException(
+        id: exception.id,
+        batchId: exception.batchId,
+        reason: exception.reason,
+        owner: batch.owner,
+        resolved: exception.resolved,
+      );
+    }
+  }
+
+  void _syncStationStatusFor(PrepBatch batch) {
+    final targetIndex =
+        _stations.indexWhere((station) => station.station == batch.station);
+    if (targetIndex != -1) {
+      _stations[targetIndex] = _stations[targetIndex].copyWith(
+        state: batch.state,
+        owner: batch.owner,
+        activeBatchId: batch.id,
+        blocked: batch.blocked,
+      );
+    }
+    for (var index = 0; index < _stations.length; index += 1) {
+      final station = _stations[index];
+      if (station.station == batch.station ||
+          station.activeBatchId != batch.id) {
+        continue;
+      }
+      final replacement = _firstBatchForStation(station.station, except: batch);
+      if (replacement == null) {
+        _stations[index] = station.copyWith(
+          state: 'Waiting',
+          owner: 'Unassigned',
+          activeBatchId: '',
+          blocked: false,
+        );
+      } else {
+        _stations[index] = station.copyWith(
+          state: replacement.state,
+          owner: replacement.owner,
+          activeBatchId: replacement.id,
+          blocked: replacement.blocked,
+        );
+      }
+    }
+  }
+
+  PrepBatch? _firstBatchForStation(String station,
+      {required PrepBatch except}) {
+    for (final batch in _batches) {
+      if (batch.id != except.id && batch.station == station) {
+        return batch;
+      }
+    }
+    return null;
+  }
+
   void _resolveExceptionForBatch(String batchId) {
     final index = _exceptions.indexWhere(
       (exception) => exception.batchId == batchId && !exception.resolved,
@@ -525,6 +619,14 @@ class PrepBoardController extends ChangeNotifier {
     final hour = now.hour.toString().padLeft(2, '0');
     final minute = now.minute.toString().padLeft(2, '0');
     return '$hour:$minute';
+  }
+
+  String? _cleanText(String? value) {
+    final cleaned = value?.trim();
+    if (cleaned == null || cleaned.isEmpty) {
+      return null;
+    }
+    return cleaned;
   }
 }
 

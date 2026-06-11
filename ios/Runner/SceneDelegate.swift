@@ -19,7 +19,7 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
       nibName: nil,
       bundle: nil
     )
-    registerPrepLinePulseTrackingAuthorizationChannel(
+    registerTeltaTrackingAuthorizationChannel(
       with: flutterViewController
     )
     GeneratedPluginRegistrant.register(with: flutterViewController)
@@ -30,33 +30,33 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
     window.makeKeyAndVisible()
   }
 
-  private func registerPrepLinePulseTrackingAuthorizationChannel(
+  private func registerTeltaTrackingAuthorizationChannel(
     with controller: FlutterViewController
   ) {
     let channel = FlutterMethodChannel(
-      name: "prep_line_pulse/tracking_authorization",
+      name: "telta/tracking_authorization",
       binaryMessenger: controller.binaryMessenger
     )
     channel.setMethodCallHandler { call, result in
       switch call.method {
       case "trackingAuthorizationStatus":
-        result(self.prepLinePulseTrackingAuthorizationStatus())
+        result(self.teltaTrackingAuthorizationStatus())
       case "requestTrackingAuthorization":
-        self.prepLinePulseRequestTrackingAuthorization(result: result)
+        self.teltaRequestTrackingAuthorization(result: result)
       default:
         result(FlutterMethodNotImplemented)
       }
     }
   }
 
-  private func prepLinePulseTrackingAuthorizationStatus() -> Int {
+  private func teltaTrackingAuthorizationStatus() -> Int {
     if #available(iOS 14, *) {
       return Int(ATTrackingManager.trackingAuthorizationStatus.rawValue)
     }
     return 4
   }
 
-  private func prepLinePulseRequestTrackingAuthorization(
+  private func teltaRequestTrackingAuthorization(
     result: @escaping FlutterResult
   ) {
     if #available(iOS 14, *) {

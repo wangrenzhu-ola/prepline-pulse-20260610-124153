@@ -4,6 +4,7 @@ import '../models/prep_models.dart';
 import '../services/prepline_purchase_service.dart';
 import '../state/prep_board_controller.dart';
 import '../theme/prep_theme.dart';
+import '../widgets/batch_setup_fields.dart';
 import '../widgets/media_widgets.dart';
 import '../widgets/operational_page.dart';
 import '../widgets/prep_widgets.dart';
@@ -49,6 +50,11 @@ class BatchDetailScreen extends StatelessWidget {
                   ),
                   const SizedBox(height: 8),
                   BatchSummary(batch: batch),
+                  const SizedBox(height: 12),
+                  BatchSetupFields(
+                    controller: controller,
+                    keyPrefix: 'batch-detail',
+                  ),
                 ],
               ),
             ),
@@ -77,6 +83,18 @@ class BatchDetailScreen extends StatelessWidget {
                           : null,
                       icon: const Icon(Icons.check_circle_outline),
                       label: Text(controller.primarySaveActionLabel),
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  SizedBox(
+                    width: double.infinity,
+                    child: OutlinedButton.icon(
+                      key: const Key('batch-detail-mark-blocked-button'),
+                      onPressed: canSpend && !batch.blocked
+                          ? () => _saveBlocked(context, controller, batch.id)
+                          : null,
+                      icon: const Icon(Icons.warning_amber_outlined),
+                      label: const Text('Mark blocked'),
                     ),
                   ),
                   const SizedBox(height: 8),
@@ -142,6 +160,23 @@ class BatchDetailScreen extends StatelessWidget {
   ) {
     controller.selectBatch(batchId);
     controller.saveState(nextState: 'Ready');
+    ScaffoldMessenger.of(context)
+      ..hideCurrentSnackBar()
+      ..showSnackBar(
+        SnackBar(
+          content: Text(controller.visibleConfirmation),
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+  }
+
+  void _saveBlocked(
+    BuildContext context,
+    PrepBoardController controller,
+    String batchId,
+  ) {
+    controller.selectBatch(batchId);
+    controller.saveState(nextState: 'Blocked');
     ScaffoldMessenger.of(context)
       ..hideCurrentSnackBar()
       ..showSnackBar(

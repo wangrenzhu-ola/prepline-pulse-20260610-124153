@@ -7,6 +7,8 @@ import 'package:flutter/widgets.dart';
 import 'package:path/path.dart' as path;
 import 'package:path_provider/path_provider.dart';
 
+import '../config/app_brand.dart';
+
 class PreplineDocumentMediaStore {
   Future<String> saveBytes({
     required Uint8List bytes,
@@ -63,7 +65,7 @@ class PreplineDocumentMediaStore {
     final output = await _temporaryExportFile();
     await output.parent.create(recursive: true);
     await output.writeAsBytes(cardBytes, flush: true);
-    await Gal.putImage(output.path, album: 'PrepLine Pulse');
+    await Gal.putImage(output.path, album: AppBrand.photosAlbumName);
   }
 
   bool isRelativePath(String value) =>
@@ -74,7 +76,7 @@ class PreplineDocumentMediaStore {
     return File(
       path.join(
         directory.path,
-        'prepline_proof_${DateTime.now().microsecondsSinceEpoch}.png',
+        'telta_proof_${DateTime.now().microsecondsSinceEpoch}.png',
       ),
     );
   }
@@ -131,16 +133,16 @@ class PreplineDocumentMediaStore {
       Paint()
         ..style = PaintingStyle.stroke
         ..strokeWidth = 3
-        ..color = const Color(0x66D4AF37),
+        ..color = const Color(0x66E09B46),
     );
 
     _drawText(
       canvas,
-      'PrepLine Pulse proof',
+      AppBrand.proofCardTitle,
       const Offset(90, 710),
       maxWidth: 900,
       fontSize: 34,
-      color: const Color(0xFFD4AF37),
+      color: const Color(0xFFE09B46),
       weight: FontWeight.w800,
     );
     _drawText(

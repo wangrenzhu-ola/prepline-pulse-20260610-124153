@@ -1,4 +1,4 @@
-# PrepLine Pulse Project Review Findings
+# Telta Project Review Findings
 
 Date: 2026-06-11
 
@@ -7,7 +7,7 @@ media loading/display, UI/UX completeness, and page background treatment.
 
 ## Summary
 
-PrepLine Pulse has a broad set of Flutter screens and several useful interaction
+Telta has a broad set of Flutter screens and several useful interaction
 prototypes, but it is not yet ready to treat as a complete product flow. The
 largest risk is not an isolated UI defect; it is that the app currently has
 multiple state sources and several pages read static or page-local data. As a
@@ -128,7 +128,7 @@ Fixes recorded in this round:
 
 - Replaced original-photo export with generated proof-card export. The generated
   card includes the proof photo, batch, state, station, owner, export time, and
-  note before writing to the `PrepLine Pulse` Photos album.
+  note before writing to the `Telta` Photos album.
 - Renamed the image action to `Export proof` so it no longer implies a business
   record save or an original-photo duplicate.
 - Promoted `Save ready with photo` / `Save update with photo` as the primary app
@@ -307,7 +307,7 @@ requires `sdk: ^3.11.5`. Both `flutter analyze` and `flutter test` stop at
 dependency resolution:
 
 ```text
-Because app_20260610_124153 requires SDK version ^3.11.5, version solving failed.
+Because telta requires SDK version ^3.11.5, version solving failed.
 ```
 
 Before accepting the app as complete, rerun analyze, tests, and an iOS simulator
