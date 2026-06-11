@@ -9,7 +9,9 @@ import 'package:app_20260610_124153/models/prep_models.dart';
 import 'package:app_20260610_124153/models/pulse_store_models.dart';
 import 'package:app_20260610_124153/screens/app_shell.dart';
 import 'package:app_20260610_124153/screens/line_board_screen.dart';
+import 'package:app_20260610_124153/screens/pulse_store_screen.dart';
 import 'package:app_20260610_124153/screens/service_clock_screen.dart';
+import 'package:app_20260610_124153/screens/settings_screen.dart';
 import 'package:app_20260610_124153/screens/state_entry_screen.dart';
 import 'package:app_20260610_124153/services/prepline_document_media_store.dart';
 import 'package:app_20260610_124153/services/prepline_purchase_service.dart';
@@ -187,6 +189,55 @@ void main() {
     expect(find.byTooltip('Settings'), findsNothing);
     expect(find.byIcon(Icons.tune), findsNothing);
     expect(find.byKey(const Key('pulse-store-product-grid')), findsOneWidget);
+    expect(find.textContaining('#'), findsNWidgets(27));
+
+    final storeScroll = find
+        .descendant(
+          of: find.byType(PulseStoreScreen),
+          matching: find.byType(Scrollable),
+        )
+        .first;
+    await tester.scrollUntilVisible(
+      find.byKey(const Key('store-user-agreement-entry')),
+      300,
+      scrollable: storeScroll,
+    );
+    expect(find.byKey(const Key('store-user-agreement-entry')), findsOneWidget);
+    expect(find.byKey(const Key('store-privacy-policy-entry')), findsOneWidget);
+  });
+
+  testWidgets('settings keeps both policy document entries', (tester) async {
+    final controller = PrepBoardController();
+    addTearDown(controller.dispose);
+
+    await tester.pumpWidget(
+      PrepBoardScope(
+        controller: controller,
+        child: MaterialApp(
+          routes: {
+            SettingsScreen.routeName: (_) => const SettingsScreen(),
+          },
+          home: const SettingsScreen(),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    final settingsScroll = find
+        .descendant(
+          of: find.byType(SettingsScreen),
+          matching: find.byType(Scrollable),
+        )
+        .first;
+    await tester.scrollUntilVisible(
+      find.byKey(const Key('settings-user-agreement-entry')),
+      300,
+      scrollable: settingsScroll,
+    );
+    expect(
+        find.byKey(const Key('settings-user-agreement-entry')), findsOneWidget);
+    expect(
+        find.byKey(const Key('settings-privacy-policy-entry')), findsOneWidget);
   });
 
   testWidgets(

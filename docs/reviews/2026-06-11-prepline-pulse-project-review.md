@@ -104,6 +104,21 @@ Fixes recorded in this round:
 - Built-in `assets/images` files are no longer rendered as UI photos.
 - Save-to-album is attached directly to the large user proof image.
 
+### Documentation Change Round 4
+
+The fourth documentation update records the `setup-iap` and
+`autobuya-ios-compliance` recheck after the user clarified that products and the
+two policy documents must not be removed.
+
+Fixes recorded in this round:
+
+- Store again renders the full 27-product catalog (`473900` through `473926`).
+- Store keeps no settings icon, but directly exposes User Agreement and Privacy
+  Policy links.
+- Settings retains its original User Agreement and Privacy Policy entries.
+- IAP tracker, compliance tracker, test matrix, feature coverage, layout audit,
+  and event log were updated to reflect the restored catalog and policy links.
+
 ## High Priority Issues
 
 ### 1. Split Global State

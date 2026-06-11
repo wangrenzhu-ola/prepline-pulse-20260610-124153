@@ -16,12 +16,13 @@ allowed_to_close_stage3_branch: yes
 ## Evidence
 
 - `flutter analyze`: passed
-- `flutter test`: passed, 9 tests
+- `flutter test`: passed
 - `flutter build ios --simulator`: passed, built `build/ios/iphonesimulator/Runner.app`
 
 ## Notes
 
 - IAP is lazy and does not touch StoreKit during startup.
-- Product catalog uses the default 27 IDs verbatim.
+- Product catalog uses the default 27 IDs verbatim and Store renders all 27 product identifiers.
 - Balance persistence and delivery-key idempotency are covered by tests.
 - Store entry is reachable from the main flow and app navigation.
+- Store retains User Agreement and Privacy Policy links without reintroducing a settings icon.

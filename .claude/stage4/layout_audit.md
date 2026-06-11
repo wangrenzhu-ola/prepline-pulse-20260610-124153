@@ -2,16 +2,16 @@
 
 ## Scope
 
-- Simplify pages to a 10-page core navigation model.
+- Simplify visible navigation to 4 primary tabs while retaining the 10-page route contract.
 - Confirm at least three large image pages: Board, Batch, Timeline.
-- Confirm Store product cards and protocol WebView surfaces fit small screens.
+- Confirm all 27 Store product cards and protocol WebView entry surfaces fit small screens.
 
 ## Findings
 
-- passed: Core navigation now has 10 pages: Board, Batch, Entry, Clock, Timeline, Exceptions, Rules, Store, Settings, About.
-- passed: Board, Batch, and Timeline all render large image surfaces; media panels support user upload, relative-path app storage, and system album export.
-- passed: Store product cards use a responsive single-column mobile grid and three-column wide layout.
-- passed: Settings exposes in-app User Agreement and Privacy Policy WebView entries.
+- passed: Core bottom navigation now has 4 tabs: Board, Batch, Photos, Store; 10 route contracts remain in `pageContracts`.
+- passed: Board, Batch, and Photos all render large user-photo surfaces; upload uses relative-path app storage and the primary image exposes system album export.
+- passed: Store renders all 27 product cards with a responsive single-column mobile grid and three-column wide layout.
+- passed: Store and Settings expose in-app User Agreement and Privacy Policy WebView entries.
 - evidence: `flutter analyze`; `flutter test`; `flutter build ios --simulator`.
 
 verification_skill_names: autobuya-ios-compliance, setup-iap

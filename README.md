@@ -11,7 +11,7 @@ The visible app should stay focused on four primary destinations:
 - Board: current batch, save-ready action, compact station state.
 - Batch: selected batch details, blocker handling, recent state saves.
 - Photos: uploaded proof image plus recent saved states.
-- Store: prep credit balance and a small set of purchase options.
+- Store: prep credit balance, all 27 purchase options, and legal policy links.
 
 Auxiliary compliance and legacy routes may remain available to preserve iOS,
 IAP, protocol, and test coverage, but they should not compete with the primary
@@ -31,6 +31,7 @@ the large image area shows an upload empty state instead.
 
 - Keep copy short and operational.
 - Avoid duplicate controls and secondary navigation drawers.
-- Do not show a settings button on the Store page.
+- Do not show a settings button on the Store page, but keep User Agreement and
+  Privacy Policy reachable from Store and Settings.
 - Keep IAP initialization lazy behind the Store flow.
 - Persist media with relative paths and rebuild full paths at render/export time.

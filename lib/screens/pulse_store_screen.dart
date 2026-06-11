@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
 
 import '../models/pulse_store_models.dart';
+import '../screens/protocol_screen.dart';
 import '../state/prep_board_controller.dart';
-import '../widgets/operational_page.dart';
 import '../theme/prep_theme.dart';
+import '../widgets/operational_page.dart';
 import '../widgets/prep_widgets.dart';
 
 // page_id: pulse-store | route_name: /pulse-store | widget_class: PulseStoreScreen | state_key: pulseStoreState
@@ -15,9 +16,6 @@ class PulseStoreScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final controller = PrepBoardScope.of(context);
-    final visibleProducts = pulseStoreCatalog
-        .where((product) => _visibleProductIds.contains(product.id))
-        .toList(growable: false);
     return OperationalPage(
       pageId: 'pulse-store',
       title: 'Store',
@@ -39,7 +37,7 @@ class PulseStoreScreen extends StatelessWidget {
               key: const Key('pulse-store-product-grid'),
               shrinkWrap: true,
               physics: const NeverScrollableScrollPhysics(),
-              itemCount: visibleProducts.length,
+              itemCount: pulseStoreCatalog.length,
               gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
                 crossAxisCount: columns,
                 mainAxisSpacing: 10,
@@ -47,7 +45,7 @@ class PulseStoreScreen extends StatelessWidget {
                 childAspectRatio: columns == 1 ? 3.4 : 1.55,
               ),
               itemBuilder: (context, index) {
-                final product = visibleProducts[index];
+                final product = pulseStoreCatalog[index];
                 return _PulseProductCard(
                   product: product,
                   busy: controller.activePurchaseProductId == product.id,
@@ -59,18 +57,38 @@ class PulseStoreScreen extends StatelessWidget {
             );
           },
         ),
+        InfoCard(
+          title: 'Policy documents',
+          child: Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            children: [
+              OutlinedButton.icon(
+                key: const Key('store-user-agreement-entry'),
+                onPressed: () => Navigator.pushNamed(
+                  context,
+                  ProtocolScreen.routeName,
+                  arguments: 'User Agreement',
+                ),
+                icon: const Icon(Icons.description_outlined),
+                label: const Text('User Agreement'),
+              ),
+              OutlinedButton.icon(
+                key: const Key('store-privacy-policy-entry'),
+                onPressed: () => Navigator.pushNamed(
+                  context,
+                  ProtocolScreen.routeName,
+                  arguments: 'Privacy Policy',
+                ),
+                icon: const Icon(Icons.privacy_tip_outlined),
+                label: const Text('Privacy Policy'),
+              ),
+            ],
+          ),
+        ),
       ],
     );
   }
-
-  static const _visibleProductIds = {
-    '473900',
-    '473904',
-    '473908',
-    '473919',
-    '473923',
-    '473926',
-  };
 
   Future<void> _confirmPurchase(
     BuildContext context,
