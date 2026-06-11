@@ -55,6 +55,13 @@ void main() {
       find.byKey(const Key('shell-bottom-nav-surface')),
     );
     expect(boardListRect.bottom, lessThanOrEqualTo(navigationSurfaceRect.top));
+
+    final navigationSurface = tester.widget<DecoratedBox>(
+      find.byKey(const Key('shell-bottom-nav-surface')),
+    );
+    final surfaceDecoration = navigationSurface.decoration as BoxDecoration;
+    expect(surfaceDecoration.color, isNotNull);
+    expect(surfaceDecoration.color!.a, 1);
   });
 
   testWidgets(

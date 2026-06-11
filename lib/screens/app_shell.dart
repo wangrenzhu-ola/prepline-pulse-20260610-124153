@@ -163,7 +163,7 @@ class _AppShellState extends State<AppShell> {
       bottomNavigationBar: DecoratedBox(
         key: const Key('shell-bottom-nav-surface'),
         decoration: BoxDecoration(
-          color: background.withValues(alpha: .96),
+          color: background,
           border: Border(
             top: BorderSide(
               color: Theme.of(
