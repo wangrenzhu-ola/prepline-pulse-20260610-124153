@@ -35,6 +35,26 @@ void main() {
     expect(plist, contains('<key>NSPhotoLibraryAddUsageDescription</key>'));
   });
 
+  test('iOS project packages app resources and registers scene plugins', () {
+    final project = File(
+      'ios/Runner.xcodeproj/project.pbxproj',
+    ).readAsStringSync();
+    final appDelegate = File('ios/Runner/AppDelegate.swift').readAsStringSync();
+    final sceneDelegate = File(
+      'ios/Runner/SceneDelegate.swift',
+    ).readAsStringSync();
+
+    expect(project, contains('Main.storyboard in Resources'));
+    expect(project, contains('Assets.xcassets in Resources'));
+    expect(project, contains('LaunchScreen.storyboard in Resources'));
+    expect(appDelegate, isNot(contains('GeneratedPluginRegistrant.register')));
+    expect(
+      sceneDelegate,
+      contains(
+          'GeneratedPluginRegistrant.register(with: flutterViewController)'),
+    );
+  });
+
   test('page contract stays within the simplified ten page surface', () {
     expect(pageContracts, hasLength(10));
     expect(pageContracts.map((contract) => contract.pageId), [

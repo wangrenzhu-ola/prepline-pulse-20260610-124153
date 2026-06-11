@@ -5,8 +5,9 @@
 | Area | Scenario | Status | Evidence |
 | --- | --- | --- | --- |
 | state_sync | Save station state and read it back globally | passed | `flutter test` |
-| ios_att | ATT request runs before `runApp()` with prefixed key | passed | `lib/main.dart`; `flutter analyze` |
+| ios_att | ATT request runs after first frame through the SceneDelegate native channel with prefixed key | passed | `lib/main.dart`; `ios/Runner/SceneDelegate.swift`; `simctl launch` |
 | ios_permissions | Camera, microphone, photos, ATT keys and macros exist | passed | `ios/Runner/Info.plist`; `ios/Podfile`; `flutter build ios --simulator` |
+| ios_resources | App icons, LaunchScreen, and Main storyboard are packaged into Runner.app | passed | `ios/Runner.xcodeproj/project.pbxproj`; `build/ios/iphonesimulator/Runner.app/Assets.car`; `flutter test` |
 | relative_paths | Media storage stores relative paths and rebuilds full path | passed | `lib/services/prepline_document_media_store.dart`; `flutter test` |
 | iap_init | IAP lazy initialization does not run on startup | passed | `lib/state/prep_board_controller.dart`; `flutter test` |
 | iap_purchase | Purchase success credits balance once per delivery key | passed | `test/widget_test.dart`; `flutter test` |
@@ -29,5 +30,6 @@
 | permission_to_ui | Permission status returns without settings jump | passed | `lib/services/prepline_permission_service.dart`; `flutter analyze` |
 | purchase_to_balance | Purchase updates balance and visible store header | passed | `test/widget_test.dart`; `flutter test` |
 | spend_to_store | Low balance routes from spend notice to store | passed | `lib/widgets/pulse_balance_button.dart`; `flutter analyze` |
+| launch_to_scene | SceneDelegate owns FlutterViewController plugin registration | passed | `ios/Runner/SceneDelegate.swift`; `simctl launch`; `flutter build ios --simulator` |
 
 verification_skill_names: autobuya-ios-compliance, setup-iap

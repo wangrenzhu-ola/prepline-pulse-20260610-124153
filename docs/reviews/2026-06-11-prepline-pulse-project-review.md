@@ -21,6 +21,59 @@ visual assets are also abstract pixel/gradient images rather than recognizable
 prep-line or batch photos, so the page background and hero treatment still feel
 unfinished.
 
+## Follow-up Documentation and Skill Originals
+
+The two user-requested skills were added to this PR as complete original files,
+copied byte-for-byte from the local Codex skill sources:
+
+- `docs/skills/original/autobuya-ios-compliance/SKILL.md`
+  - Source: `/Users/zhoujinyu/.codex/skills/autobuya-ios-compliance/SKILL.md`
+  - SHA-256: `a3c098bee4e67fae46192083ddefe8472afc9f6f62c68ed9814cedb4ed32fc9a`
+- `docs/skills/original/setup-iap/SKILL.md`
+  - Source: `/Users/zhoujinyu/.codex/skills/setup-iap/SKILL.md`
+  - SHA-256: `54723eccdf22e8a568205bb6b8aee6ae8cbd6b3144bd1ab7f8656735c9e53ebf`
+
+### Documentation Change Round 1
+
+The first documentation update recorded the app simplification and Stage 3
+iOS/IAP implementation work:
+
+- Simplified the product surface to 10 core pages with less dense page content.
+- Recorded three large-image pages: Line Board, Batch Detail, and Station
+  Timeline.
+- Recorded user image upload, relative-path media persistence, image preview,
+  and save-to-album support.
+- Recorded `autobuya-ios-compliance` work in
+  `.claude/stage3/compliance_tracker.md`, `.claude/test_matrix.md`, and
+  `.claude/event_log.ndjson`.
+- Recorded `setup-iap` work in `.claude/stage3/iap_tracker.md`,
+  `.claude/stage3/iap_closeout_review.md`,
+  `.claude/feature_coverage_matrix.md`, `.claude/test_matrix.md`, and
+  `.claude/event_log.ndjson`.
+
+### Documentation Change Round 2
+
+The second documentation update recorded the runtime-open fixes found while
+running the app on the iOS simulator:
+
+- `SceneDelegate` now owns Flutter plugin registration for the scene-created
+  `FlutterViewController`.
+- ATT authorization now runs through a native SceneDelegate `MethodChannel`
+  after the first Flutter frame.
+- `app_tracking_transparency` was removed because simulator crash reports showed
+  Swift plugin registration crashing before the app reached a stable first
+  frame under the current SceneDelegate lifecycle.
+- `Main.storyboard`, `Assets.xcassets`, and `LaunchScreen.storyboard` were
+  restored to the Runner resources phase so `Runner.app` contains `Assets.car`,
+  app icons, and compiled storyboards.
+- Runtime evidence was written back to `.claude/stage3/compliance_tracker.md`,
+  `.claude/test_matrix.md`, and `.claude/event_log.ndjson`.
+
+This is an explicit runtime adaptation from the archived
+`autobuya-ios-compliance` original text: the original skill describes an ATT
+implementation before `runApp`, but the observed simulator crash path required
+rendering Flutter first and requesting ATT through the scene-owned native channel.
+
 ## High Priority Issues
 
 ### 1. Split Global State

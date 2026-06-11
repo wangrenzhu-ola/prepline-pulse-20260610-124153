@@ -1,6 +1,4 @@
 PODS:
-  - app_tracking_transparency (0.0.1):
-    - Flutter
   - Flutter (1.0.0)
   - gal (1.0.0):
     - Flutter
@@ -23,7 +21,6 @@ PODS:
     - FlutterMacOS
 
 DEPENDENCIES:
-  - app_tracking_transparency (from `.symlinks/plugins/app_tracking_transparency/ios`)
   - Flutter (from `Flutter`)
   - gal (from `.symlinks/plugins/gal/darwin`)
   - image_picker_ios (from `.symlinks/plugins/image_picker_ios/ios`)
@@ -34,8 +31,6 @@ DEPENDENCIES:
   - webview_flutter_wkwebview (from `.symlinks/plugins/webview_flutter_wkwebview/darwin`)
 
 EXTERNAL SOURCES:
-  app_tracking_transparency:
-    :path: ".symlinks/plugins/app_tracking_transparency/ios"
   Flutter:
     :path: Flutter
   gal:
@@ -54,7 +49,6 @@ EXTERNAL SOURCES:
     :path: ".symlinks/plugins/webview_flutter_wkwebview/darwin"
 
 SPEC CHECKSUMS:
-  app_tracking_transparency: 3d84f147f67ca82d3c15355c36b1fa6b66ca7c92
   Flutter: e0871f40cf51350855a761d2e70bf5af5b9b5de7
   gal: baecd024ebfd13c441269ca7404792a7152fde89
   image_picker_ios: 7fe1ff8e34c1790d6fff70a32484959f563a928a

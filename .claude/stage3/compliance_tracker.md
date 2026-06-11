@@ -9,7 +9,7 @@ Scope: Implement ATT, iOS permission keys/macros, in-app protocol WebView, relat
 
 Files: `lib/main.dart`, `pubspec.yaml`, `ios/Runner/Info.plist`, `ios/Podfile`, `lib/services/prepline_permission_service.dart`, `lib/services/prepline_document_media_store.dart`, `lib/screens/protocol_screen.dart`, `lib/screens/settings_screen.dart`, `.claude/test_matrix.md`, `.claude/event_log.ndjson`.
 
-Order: add dependencies; implement ATT before runApp; configure Info.plist and Podfile; add permission service; add relative path media store; add protocol WebView entries; verify with analyze, tests, iOS simulator build.
+Order: add dependencies; implement ATT through a SceneDelegate native channel after the first frame; configure Info.plist and Podfile; add permission service; add relative path media store; add protocol WebView entries; verify with analyze, tests, iOS simulator build, and simctl launch.
 
 Verification: `flutter pub get`, `dart format lib test`, `flutter analyze`, `flutter test`, `flutter build ios --simulator`.
 
@@ -24,8 +24,10 @@ Risks: Permission copy must match prep-line media capture/import/export usage; i
 
 | Item | Status | Evidence |
 | --- | --- | --- |
-| att_requested_at_app_start | passed | `lib/main.dart`; `flutter analyze` |
+| att_requested_after_first_frame | passed | `lib/main.dart`; `ios/Runner/SceneDelegate.swift`; `simctl launch` |
 | att_prefixed_storage_key | passed | `lib/main.dart` uses `prepLinePulseAttRequested` |
+| scene_delegate_plugin_registration | passed | Swift plugins register against `flutterViewController`, preventing nil registrar launch crashes |
+| app_resources_packaged | passed | `Assets.car`, app icons, Main storyboard, and LaunchScreen storyboard are present in `Runner.app` |
 | tracking_usage_description_localized | passed | `ios/Runner/Info.plist` |
 | permission_keys_complete | passed | `ios/Runner/Info.plist`; `flutter build ios --simulator` |
 | permission_copy_matches_real_usage | passed | `ios/Runner/Info.plist`; media upload/export UI |
@@ -40,12 +42,14 @@ Risks: Permission copy must match prep-line media capture/import/export usage; i
 
 ## Compliance Contract Evidence Map
 
-- att_requested_at_app_start: `main()` awaits `prepLinePulseResolveTrackingAuthorization()` before `runApp()`.
+- att_requested_after_first_frame: `main()` renders `PrepLinePulseApp`, then schedules `prepLinePulseResolveTrackingAuthorization()` with a post-frame callback.
+- scene_delegate_plugin_registration: `SceneDelegate` creates the `FlutterViewController`, registers the custom ATT MethodChannel, and then calls `GeneratedPluginRegistrant.register(with: flutterViewController)`.
+- app_resources_packaged: `ios/Runner.xcodeproj/project.pbxproj` includes Main storyboard, Assets.xcassets, and LaunchScreen storyboard in the Runner resources phase.
 - permission_keys_complete: Info.plist contains ATT, camera, microphone, photo read, and photo add descriptions.
 - relative_path_storage_only: uploaded images are copied to app documents and stored as `station_images/<file>`.
 - runtime_path_rebuild_correct: previews and album export call `rebuildFile(relativePath)` before file access.
 - protocol_webview_accessible: Settings opens User Agreement and Privacy Policy via in-app WebView with retry.
-- verification: `flutter analyze`; `flutter test`; `flutter build ios --simulator`.
+- verification: `flutter analyze`; `flutter test`; `flutter build ios --simulator`; `simctl install`; `simctl launch`; simulator screenshot.
 
 ## Blockers
 
