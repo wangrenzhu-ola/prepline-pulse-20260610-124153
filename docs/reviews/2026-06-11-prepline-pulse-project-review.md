@@ -74,6 +74,36 @@ This is an explicit runtime adaptation from the archived
 implementation before `runApp`, but the observed simulator crash path required
 rendering Flutter first and requesting ATT through the scene-owned native channel.
 
+### Documentation Change Round 3
+
+The third documentation update records the post-screenshot simplification pass.
+The provided simulator screenshot paths were no longer readable from their
+temporary `/var/folders/.../T/` locations, so the analysis used current source
+inspection plus a fresh iOS simulator screenshot.
+
+Root causes found:
+
+- The Store page did not own a settings action; the shared `PrepScaffold`
+  injected a settings icon into every page using that scaffold.
+- The app still exposed too many peer-level destinations through navigation,
+  drawer, and More surfaces, so auxiliary pages competed with the core workflow.
+- Built-in `assets/images` PNGs were displayed as large hero/media images,
+  which made it unclear whether the user was seeing uploaded album media or
+  placeholder art.
+- Save-to-album lived in a secondary media panel instead of on the primary proof
+  image, so the photo workflow did not feel like the product's main action.
+
+Fixes recorded in this round:
+
+- Primary navigation is now Board, Batch, Photos, and Store.
+- The Store page no longer shows a settings icon.
+- Board, Batch, and Photos each use the same `PrimaryProofHero`; it shows an
+  upload empty state until the user uploads an album photo.
+- Uploading a proof photo promotes that user image to all three large-image
+  pages.
+- Built-in `assets/images` files are no longer rendered as UI photos.
+- Save-to-album is attached directly to the large user proof image.
+
 ## High Priority Issues
 
 ### 1. Split Global State

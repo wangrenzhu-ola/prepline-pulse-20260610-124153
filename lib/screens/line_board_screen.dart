@@ -3,12 +3,10 @@ import 'package:flutter/material.dart';
 import '../models/prep_models.dart';
 import '../state/prep_board_controller.dart';
 import '../theme/prep_theme.dart';
-import '../widgets/media_widgets.dart';
 import '../widgets/operational_page.dart';
 import '../widgets/pulse_balance_button.dart';
 import '../widgets/status_widgets.dart';
 import 'batch_detail_screen.dart';
-import 'state_entry_screen.dart' as state_entry;
 
 // page_id: line-board | route_name: /line-board | widget_class: LineBoardScreen | state_key: lineBoardState
 class LineBoardScreen extends StatelessWidget {
@@ -22,46 +20,27 @@ class LineBoardScreen extends StatelessWidget {
       pageId: 'line-board',
       title: 'Line Board',
       actions: const [PulseBalanceButton(compact: true)],
+      mediaTarget: 'line-board',
       children: [
-        _ServiceWindowCard(controller: controller),
-        const SizedBox(height: 12),
         ConfirmationBanner(message: controller.visibleConfirmation),
         const SizedBox(height: 12),
-        _PrimaryUpdateControl(controller: controller),
+        _FocusBatchCard(controller: controller),
         const SizedBox(height: 12),
-        _LatestSavedState(log: controller.latestSavedState),
-        const SizedBox(height: 12),
-        Text(
-          'Station status cards',
-          style: Theme.of(context).textTheme.titleLarge,
-        ),
-        const SizedBox(height: 8),
-        for (final station in controller.stations) ...[
-          _StationStatusCard(
-            station: station,
-            batch: controller.batches.firstWhere(
-              (batch) => batch.id == station.activeBatchId,
-            ),
-            selectedBatchId: controller.selectedBatchId,
-            onSelect: controller.selectBatch,
-            onResolve: controller.resolveBlocked,
-          ),
-          const SizedBox(height: 10),
-        ],
-        PrepMediaPreview(record: controller.media),
+        _StationStrip(controller: controller),
       ],
     );
   }
 }
 
-class _ServiceWindowCard extends StatelessWidget {
-  const _ServiceWindowCard({required this.controller});
+class _FocusBatchCard extends StatelessWidget {
+  const _FocusBatchCard({required this.controller});
 
   final PrepBoardController controller;
 
   @override
   Widget build(BuildContext context) {
-    final window = controller.serviceWindow;
+    final batch = controller.selectedBatch;
+    final statusColor = batch.blocked ? PrepTheme.error : PrepTheme.success;
     return Card(
       child: Padding(
         padding: const EdgeInsets.all(14),
@@ -72,16 +51,13 @@ class _ServiceWindowCard extends StatelessWidget {
               children: [
                 Expanded(
                   child: Text(
-                    '${window.label} service window',
+                    '${batch.id} ${batch.name}',
                     style: Theme.of(context).textTheme.titleLarge,
                   ),
                 ),
                 PrepStatusPill(
-                  '${controller.blockedBatchCount} blocked',
-                  color: controller.blockedBatchCount == 0
-                      ? PrepTheme.success
-                      : PrepTheme.warning,
-                  icon: Icons.block_outlined,
+                  batch.state,
+                  color: statusColor,
                 ),
               ],
             ),
@@ -90,47 +66,16 @@ class _ServiceWindowCard extends StatelessWidget {
               spacing: 8,
               runSpacing: 8,
               children: [
-                PrepStatusPill(window.timeRange, icon: Icons.schedule),
-                PrepStatusPill(
-                  '${window.minutesRemaining} min to window',
-                  color: PrepTheme.violet,
-                  icon: Icons.timelapse,
-                ),
+                PrepStatusPill(batch.station, icon: Icons.room_outlined),
+                PrepStatusPill('Owner ${batch.owner}'),
+                PrepStatusPill('${controller.pulseCredits} credits'),
               ],
             ),
             const SizedBox(height: 12),
-            const PulseBalanceButton(),
-            const SizedBox(height: 12),
-            Text(window.pressure),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class _PrimaryUpdateControl extends StatelessWidget {
-  const _PrimaryUpdateControl({required this.controller});
-
-  final PrepBoardController controller;
-
-  @override
-  Widget build(BuildContext context) {
-    return Card(
-      child: Padding(
-        padding: const EdgeInsets.all(14),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              'Primary update control',
-              style: Theme.of(context).textTheme.titleMedium,
-            ),
-            const SizedBox(height: 10),
             DropdownButtonFormField<String>(
               value: controller.selectedBatchId,
               isExpanded: true,
-              decoration: const InputDecoration(labelText: 'Active batch'),
+              decoration: const InputDecoration(labelText: 'Batch'),
               items: [
                 for (final batch in controller.batches)
                   DropdownMenuItem(
@@ -148,24 +93,28 @@ class _PrimaryUpdateControl extends StatelessWidget {
               },
             ),
             const SizedBox(height: 12),
-            SizedBox(
-              width: double.infinity,
-              child: FilledButton.icon(
-                onPressed: () => controller.saveState(),
-                icon: const Icon(Icons.save_outlined),
-                label: const Text('Save ready state'),
-              ),
-            ),
-            const SizedBox(height: 6),
-            const Text('Uses 10 prep credits.'),
-            const SizedBox(height: 8),
-            OutlinedButton.icon(
-              onPressed: () => Navigator.pushNamed(
-                context,
-                state_entry.StateEntryScreen.routeName,
-              ),
-              icon: const Icon(Icons.edit_note_outlined),
-              label: const Text('Open full state entry'),
+            Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              children: [
+                FilledButton.icon(
+                  onPressed: () => controller.saveState(nextState: 'Ready'),
+                  icon: const Icon(Icons.check_circle_outline),
+                  label: const Text('Save ready'),
+                ),
+                OutlinedButton.icon(
+                  onPressed: () =>
+                      Navigator.pushNamed(context, BatchDetailScreen.routeName),
+                  icon: const Icon(Icons.receipt_long_outlined),
+                  label: const Text('Batch detail'),
+                ),
+                if (batch.blocked)
+                  OutlinedButton.icon(
+                    onPressed: () => controller.resolveBlocked(batch.id),
+                    icon: const Icon(Icons.task_alt),
+                    label: const Text('Clear block'),
+                  ),
+              ],
             ),
           ],
         ),
@@ -174,10 +123,10 @@ class _PrimaryUpdateControl extends StatelessWidget {
   }
 }
 
-class _LatestSavedState extends StatelessWidget {
-  const _LatestSavedState({required this.log});
+class _StationStrip extends StatelessWidget {
+  const _StationStrip({required this.controller});
 
-  final PrepLog log;
+  final PrepBoardController controller;
 
   @override
   Widget build(BuildContext context) {
@@ -187,29 +136,28 @@ class _LatestSavedState extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(
-              'Latest saved batch state',
-              style: Theme.of(context).textTheme.titleMedium,
+            Text('Stations', style: Theme.of(context).textTheme.titleMedium),
+            const SizedBox(height: 10),
+            SizedBox(
+              height: 104,
+              child: ListView.separated(
+                scrollDirection: Axis.horizontal,
+                itemCount: controller.stations.length,
+                separatorBuilder: (_, __) => const SizedBox(width: 10),
+                itemBuilder: (context, index) {
+                  final station = controller.stations[index];
+                  final batch = controller.batches.firstWhere(
+                    (item) => item.id == station.activeBatchId,
+                  );
+                  return _StationTile(
+                    station: station,
+                    batch: batch,
+                    selected: batch.id == controller.selectedBatchId,
+                    onTap: () => controller.selectBatch(batch.id),
+                  );
+                },
+              ),
             ),
-            const SizedBox(height: 8),
-            Text('${log.batchName} is ${log.state} at ${log.station}.'),
-            const SizedBox(height: 6),
-            Wrap(
-              spacing: 8,
-              runSpacing: 8,
-              children: [
-                PrepStatusPill(
-                  'Owner ${log.owner}',
-                  icon: Icons.badge_outlined,
-                ),
-                PrepStatusPill(
-                  'Saved ${log.savedAt}',
-                  icon: Icons.check_circle_outline,
-                ),
-              ],
-            ),
-            const SizedBox(height: 6),
-            Text(log.note),
           ],
         ),
       ),
@@ -217,88 +165,65 @@ class _LatestSavedState extends StatelessWidget {
   }
 }
 
-class _StationStatusCard extends StatelessWidget {
-  const _StationStatusCard({
+class _StationTile extends StatelessWidget {
+  const _StationTile({
     required this.station,
     required this.batch,
-    required this.selectedBatchId,
-    required this.onSelect,
-    required this.onResolve,
+    required this.selected,
+    required this.onTap,
   });
 
   final StationStatus station;
   final PrepBatch batch;
-  final String selectedBatchId;
-  final ValueChanged<String> onSelect;
-  final ValueChanged<String> onResolve;
+  final bool selected;
+  final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context) {
-    final selected = batch.id == selectedBatchId;
     final statusColor = batch.blocked ? PrepTheme.error : PrepTheme.success;
-    return Card(
+    return SizedBox(
+      width: 172,
       child: InkWell(
-        onTap: () => onSelect(batch.id),
+        onTap: onTap,
         borderRadius: BorderRadius.circular(8),
-        child: Padding(
-          padding: const EdgeInsets.all(14),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                children: [
-                  Expanded(
-                    child: Text(
-                      station.station,
-                      style: Theme.of(context).textTheme.titleMedium,
+        child: DecoratedBox(
+          decoration: BoxDecoration(
+            color:
+                selected ? PrepTheme.gold.withOpacity(.14) : PrepTheme.elevated,
+            borderRadius: BorderRadius.circular(8),
+            border: Border.all(
+              color: selected
+                  ? PrepTheme.gold.withOpacity(.55)
+                  : Colors.white.withOpacity(.08),
+            ),
+          ),
+          child: Padding(
+            padding: const EdgeInsets.all(12),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    Expanded(
+                      child: Text(
+                        station.station,
+                        style: Theme.of(context).textTheme.titleMedium,
+                      ),
                     ),
-                  ),
-                  if (selected)
-                    const PrepStatusPill(
-                      'Selected',
-                      icon: Icons.radio_button_checked,
-                    ),
-                ],
-              ),
-              const SizedBox(height: 8),
-              Text('${batch.id} ${batch.name}'),
-              const SizedBox(height: 10),
-              Wrap(
-                spacing: 8,
-                runSpacing: 8,
-                children: [
-                  PrepStatusPill(batch.state, color: statusColor),
-                  PrepStatusPill(
-                    'Owner ${batch.owner}',
-                    icon: Icons.person_outline,
-                  ),
-                  PrepStatusPill('${batch.quantity} portions'),
-                ],
-              ),
-              const SizedBox(height: 10),
-              Text(batch.note),
-              const SizedBox(height: 10),
-              Wrap(
-                spacing: 8,
-                runSpacing: 8,
-                children: [
-                  OutlinedButton.icon(
-                    onPressed: () => Navigator.pushNamed(
-                      context,
-                      BatchDetailScreen.routeName,
-                    ),
-                    icon: const Icon(Icons.open_in_new),
-                    label: const Text('Open batch'),
-                  ),
-                  if (batch.blocked)
-                    OutlinedButton.icon(
-                      onPressed: () => onResolve(batch.id),
-                      icon: const Icon(Icons.task_alt),
-                      label: const Text('Resolve block'),
-                    ),
-                ],
-              ),
-            ],
+                    if (selected)
+                      const Icon(Icons.radio_button_checked, size: 18),
+                  ],
+                ),
+                const SizedBox(height: 12),
+                PrepStatusPill(batch.state, color: statusColor),
+                const SizedBox(height: 8),
+                Text(
+                  batch.id,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ],
+            ),
           ),
         ),
       ),

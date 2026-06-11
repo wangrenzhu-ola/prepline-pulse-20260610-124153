@@ -55,7 +55,7 @@ void main() {
     );
   });
 
-  test('page contract stays within the simplified ten page surface', () {
+  test('page contract keeps legacy routes outside the four-tab core shell', () {
     expect(pageContracts, hasLength(10));
     expect(pageContracts.map((contract) => contract.pageId), [
       'line-board',
@@ -120,6 +120,28 @@ void main() {
       const Rect.fromLTWH(0, 0, 393, 852),
     );
     expect(find.byType(NavigationBar), findsOneWidget);
+    final navBar = find.byType(NavigationBar);
+    expect(
+      find.descendant(of: navBar, matching: find.byType(Text)),
+      findsNWidgets(4),
+    );
+    expect(
+      find.descendant(of: navBar, matching: find.text('Board')),
+      findsOneWidget,
+    );
+    expect(
+      find.descendant(of: navBar, matching: find.text('Batch')),
+      findsOneWidget,
+    );
+    expect(
+      find.descendant(of: navBar, matching: find.text('Photos')),
+      findsOneWidget,
+    );
+    expect(
+      find.descendant(of: navBar, matching: find.text('Store')),
+      findsOneWidget,
+    );
+    expect(find.text('More'), findsNothing);
     expect(
       tester.getRect(find.byKey(const Key('shell-bottom-nav-surface'))).bottom,
       852,
@@ -145,6 +167,26 @@ void main() {
     final surfaceDecoration = navigationSurface.decoration as BoxDecoration;
     expect(surfaceDecoration.color, isNotNull);
     expect(surfaceDecoration.color!.opacity, 1);
+  });
+
+  testWidgets('store page does not expose a settings action', (tester) async {
+    tester.view.devicePixelRatio = 1;
+    tester.view.physicalSize = const Size(393, 852);
+    addTearDown(() {
+      tester.view.resetDevicePixelRatio();
+      tester.view.resetPhysicalSize();
+    });
+
+    await tester.pumpWidget(const PrepLinePulseApp());
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('Store'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Store'), findsWidgets);
+    expect(find.byTooltip('Settings'), findsNothing);
+    expect(find.byIcon(Icons.tune), findsNothing);
+    expect(find.byKey(const Key('pulse-store-product-grid')), findsOneWidget);
   });
 
   testWidgets(
@@ -255,7 +297,9 @@ void main() {
     expect(controller.lastResolvedException, contains('B-104'));
   });
 
-  testWidgets('media preview renders image assets as images', (tester) async {
+  testWidgets('asset image records show upload-required placeholder', (
+    tester,
+  ) async {
     await tester.pumpWidget(
       const MaterialApp(
         home: Scaffold(
@@ -271,9 +315,9 @@ void main() {
       ),
     );
 
-    expect(find.byType(Image), findsOneWidget);
-    expect(find.textContaining('Image: assets/images/prepline_hero.png'),
-        findsOneWidget);
+    expect(find.byType(Image), findsNothing);
+    expect(find.text('Built-in asset images are hidden.'), findsOneWidget);
+    expect(find.text('Upload required'), findsOneWidget);
   });
 }
 

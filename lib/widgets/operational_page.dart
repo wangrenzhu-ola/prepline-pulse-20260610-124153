@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
-import '../data/prep_seed_data.dart';
 import '../theme/prep_theme.dart';
+import 'media_widgets.dart';
 
 class OperationalPage extends StatelessWidget {
   const OperationalPage({
@@ -9,6 +9,8 @@ class OperationalPage extends StatelessWidget {
     required this.title,
     required this.children,
     this.actions = const [],
+    this.mediaTarget,
+    this.showHero = true,
     super.key,
   });
 
@@ -16,10 +18,11 @@ class OperationalPage extends StatelessWidget {
   final String title;
   final List<Widget> children;
   final List<Widget> actions;
+  final String? mediaTarget;
+  final bool showHero;
 
   @override
   Widget build(BuildContext context) {
-    final visualAsset = _visualAssetFor(pageId);
     return Scaffold(
       appBar: AppBar(
         title: Text(title),
@@ -42,12 +45,13 @@ class OperationalPage extends StatelessWidget {
           child: ListView(
             padding: const EdgeInsets.fromLTRB(16, 12, 16, 96),
             children: [
-              _OperationalHero(
-                pageId: pageId,
-                title: title,
-                assetPath: visualAsset,
-              ),
-              const SizedBox(height: 12),
+              if (showHero) ...[
+                if (mediaTarget == null)
+                  _OperationalHero(pageId: pageId, title: title)
+                else
+                  PrimaryProofHero(attachedTo: mediaTarget!, title: title),
+                const SizedBox(height: 12),
+              ],
               ...children,
             ],
           ),
@@ -55,35 +59,16 @@ class OperationalPage extends StatelessWidget {
       ),
     );
   }
-
-  String _visualAssetFor(String pageId) {
-    switch (pageId) {
-      case 'batch-detail':
-      case 'batch-detail_detail':
-      case 'state-entry':
-      case 'state-entry_detail':
-        return batchAsset;
-      case 'line-board':
-      case 'line-board_detail':
-      case 'station-timeline':
-      case 'exception-queue':
-      case 'prep-rules':
-      default:
-        return heroAsset;
-    }
-  }
 }
 
 class _OperationalHero extends StatelessWidget {
   const _OperationalHero({
     required this.pageId,
     required this.title,
-    required this.assetPath,
   });
 
   final String pageId;
   final String title;
-  final String assetPath;
 
   @override
   Widget build(BuildContext context) {
@@ -96,7 +81,25 @@ class _OperationalHero extends StatelessWidget {
             SizedBox(
               height: 220,
               width: double.infinity,
-              child: Image.asset(assetPath, fit: BoxFit.cover),
+              child: DecoratedBox(
+                decoration: const BoxDecoration(
+                  gradient: RadialGradient(
+                    center: Alignment.topRight,
+                    radius: 1.2,
+                    colors: [
+                      Color(0xFF39261C),
+                      Color(0xFF141517),
+                    ],
+                  ),
+                ),
+                child: Center(
+                  child: Icon(
+                    Icons.dataset_outlined,
+                    size: 42,
+                    color: PrepTheme.gold.withOpacity(.72),
+                  ),
+                ),
+              ),
             ),
             Positioned.fill(
               child: DecoratedBox(

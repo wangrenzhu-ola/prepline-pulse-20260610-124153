@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 
-import '../data/prep_seed_data.dart';
 import '../models/pulse_store_models.dart';
 import '../state/prep_board_controller.dart';
+import '../widgets/operational_page.dart';
 import '../theme/prep_theme.dart';
 import '../widgets/prep_widgets.dart';
 
@@ -15,16 +15,20 @@ class PulseStoreScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final controller = PrepBoardScope.of(context);
-    return PrepScaffold(
-      contract: pageContracts[7],
-      hero: ContractHero(contract: pageContracts[7], assetPath: batchAsset),
+    final visibleProducts = pulseStoreCatalog
+        .where((product) => _visibleProductIds.contains(product.id))
+        .toList(growable: false);
+    return OperationalPage(
+      pageId: 'pulse-store',
+      title: 'Store',
+      showHero: false,
       children: [
         InfoCard(
-          title: 'Prep credit balance',
+          title: 'Prep credits',
           trailing: StatusChip('${controller.pulseCredits} credits'),
           child: Text(
             controller.storeReadback ??
-                'Use prep credits to save verified state updates.',
+                'Credits are used only when saving a verified batch state.',
             key: const Key('pulse-store-readback'),
           ),
         ),
@@ -35,15 +39,15 @@ class PulseStoreScreen extends StatelessWidget {
               key: const Key('pulse-store-product-grid'),
               shrinkWrap: true,
               physics: const NeverScrollableScrollPhysics(),
-              itemCount: pulseStoreCatalog.length,
+              itemCount: visibleProducts.length,
               gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
                 crossAxisCount: columns,
                 mainAxisSpacing: 10,
                 crossAxisSpacing: 10,
-                childAspectRatio: columns == 1 ? 2.9 : 1.25,
+                childAspectRatio: columns == 1 ? 3.4 : 1.55,
               ),
               itemBuilder: (context, index) {
-                final product = pulseStoreCatalog[index];
+                final product = visibleProducts[index];
                 return _PulseProductCard(
                   product: product,
                   busy: controller.activePurchaseProductId == product.id,
@@ -58,6 +62,15 @@ class PulseStoreScreen extends StatelessWidget {
       ],
     );
   }
+
+  static const _visibleProductIds = {
+    '473900',
+    '473904',
+    '473908',
+    '473919',
+    '473923',
+    '473926',
+  };
 
   Future<void> _confirmPurchase(
     BuildContext context,
@@ -122,14 +135,12 @@ class _PulseProductCard extends StatelessWidget {
                   mainAxisAlignment: MainAxisAlignment.center,
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(product.title, maxLines: 1),
-                    const SizedBox(height: 4),
                     Text(
                       '${product.amount} credits',
                       style: Theme.of(context).textTheme.titleMedium,
                     ),
                     const SizedBox(height: 4),
-                    Text(product.referencePrice),
+                    Text('${product.referencePrice}  #${product.id}'),
                   ],
                 ),
               ),

@@ -12,21 +12,24 @@
 | iap_init | IAP lazy initialization does not run on startup | passed | `lib/state/prep_board_controller.dart`; `flutter test` |
 | iap_purchase | Purchase success credits balance once per delivery key | passed | `test/widget_test.dart`; `flutter test` |
 | spend_point | Save state spends exactly 10 units | passed | `lib/state/prep_board_controller.dart`; `lib/screens/state_entry_screen.dart` |
+| media_asset_visibility | Built-in `assets/images` are not rendered as UI photos | passed | `lib/widgets/media_widgets.dart`; `test/widget_test.dart`; simulator screenshot |
+| media_album_primary | Uploaded album photo becomes the primary proof image for Board, Batch, and Photos | passed | `lib/state/prep_board_controller.dart`; `lib/widgets/media_widgets.dart`; `flutter test` |
 
 ## Page Tests
 
 | Page | Scenario | Status | Evidence |
 | --- | --- | --- | --- |
-| board | Large image and simplified board content render | passed | `lib/screens/line_board_screen.dart`; `flutter test` |
-| batch | Large image and batch readback render | passed | `lib/screens/batch_detail_screen.dart`; `flutter analyze` |
-| timeline | Large image and compact history render | passed | `lib/screens/station_timeline_screen.dart`; `flutter analyze` |
-| store | Product cards and balance entry fit small screens | passed | `lib/screens/pulse_store_screen.dart`; `flutter analyze` |
+| board | Large upload empty state or uploaded user photo renders without asset image fallback | passed | `lib/screens/line_board_screen.dart`; `/private/tmp/prepline-simplified-board.png`; `flutter test` |
+| batch | Large upload empty state or uploaded user photo renders without duplicate media panels | passed | `lib/screens/batch_detail_screen.dart`; `flutter analyze` |
+| photos | Large upload empty state or uploaded user photo renders with compact history | passed | `lib/screens/station_timeline_screen.dart`; `flutter analyze` |
+| store | Product cards are reduced and the settings action is absent | passed | `lib/screens/pulse_store_screen.dart`; `test/widget_test.dart` |
 | protocols | User agreement and privacy policy open in-app WebView | passed | `lib/screens/protocol_screen.dart`; `flutter build ios --simulator` |
 
 ## Linked Tests
 
 | Link | Scenario | Status | Evidence |
 | --- | --- | --- | --- |
+| core_navigation | Bottom navigation exposes only Board, Batch, Photos, and Store | passed | `lib/screens/app_shell.dart`; `test/widget_test.dart`; simulator screenshot |
 | permission_to_ui | Permission status returns without settings jump | passed | `lib/services/prepline_permission_service.dart`; `flutter analyze` |
 | purchase_to_balance | Purchase updates balance and visible store header | passed | `test/widget_test.dart`; `flutter test` |
 | spend_to_store | Low balance routes from spend notice to store | passed | `lib/widgets/pulse_balance_button.dart`; `flutter analyze` |

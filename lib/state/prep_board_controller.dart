@@ -30,26 +30,7 @@ class PrepBoardController extends ChangeNotifier {
     _stations = List<StationStatus>.from(_snapshot.stations);
     _logs = List<PrepLog>.from(seedLogs);
     _exceptions = List<PrepException>.from(seedExceptions);
-    _media = [
-      const MediaRecord(
-        id: 'M-hero',
-        assetPath: heroAsset,
-        label: 'Opening station photo',
-        attachedTo: 'line-board',
-      ),
-      const MediaRecord(
-        id: 'M-batch',
-        assetPath: batchAsset,
-        label: 'Batch proof photo',
-        attachedTo: 'batch-detail',
-      ),
-      const MediaRecord(
-        id: 'M-timeline',
-        assetPath: heroAsset,
-        label: 'Timeline handoff photo',
-        attachedTo: 'station-timeline',
-      ),
-    ];
+    _media = [];
     _latestSavedState = _logs.last;
     _loadPulseCredits();
   }
@@ -96,6 +77,12 @@ class PrepBoardController extends ChangeNotifier {
 
   PrepBatch get selectedBatch =>
       _batches.firstWhere((batch) => batch.id == selectedBatchId);
+
+  static const _proofTargets = <String>[
+    'line-board',
+    'batch-detail',
+    'station-timeline',
+  ];
 
   void selectBatch(String batchId) {
     if (selectedBatchId == batchId) {
@@ -219,16 +206,17 @@ class PrepBoardController extends ChangeNotifier {
   List<MediaRecord> mediaFor(String attachedTo) =>
       _media.where((media) => media.attachedTo == attachedTo).toList();
 
+  MediaRecord? primaryUserMediaFor(String attachedTo) {
+    for (final media in mediaFor(attachedTo)) {
+      if (media.storedInDocuments) {
+        return media;
+      }
+    }
+    return null;
+  }
+
   void addMedia(String attachedTo) {
-    final isBatch = attachedTo == 'batch-detail';
-    _media.add(
-      MediaRecord(
-        id: 'M-${_media.length + 1}',
-        assetPath: isBatch ? batchAsset : heroAsset,
-        label: isBatch ? 'Added batch proof photo' : 'Added station media',
-        attachedTo: attachedTo,
-      ),
-    );
+    mediaReadback = 'Use Upload photo to attach an album image.';
     notifyListeners();
   }
 
@@ -236,7 +224,7 @@ class PrepBoardController extends ChangeNotifier {
     final allowed = await _permissionService.requestPhotoLibraryRead();
     if (!allowed) {
       mediaReadback =
-          'Photo access is limited; the large image stays on the built-in proof.';
+          'Photo access is unavailable. Upload is needed for the large image.';
       notifyListeners();
       return;
     }
@@ -258,17 +246,47 @@ class PrepBoardController extends ChangeNotifier {
       folder: 'station_images',
       extension: extension,
     );
-    _media.insert(
-      0,
-      MediaRecord(
-        id: 'M-${DateTime.now().microsecondsSinceEpoch}',
-        assetPath: relativePath,
-        label: 'Uploaded station proof',
-        attachedTo: attachedTo,
-        storedInDocuments: true,
-      ),
-    );
-    mediaReadback = 'Uploaded and stored $relativePath.';
+    final uploadId = DateTime.now().microsecondsSinceEpoch;
+    if (_proofTargets.contains(attachedTo)) {
+      final oldPaths = _media
+          .where((media) =>
+              media.storedInDocuments &&
+              _proofTargets.contains(media.attachedTo))
+          .map((media) => media.assetPath)
+          .toSet();
+      _media.removeWhere((media) =>
+          media.storedInDocuments && _proofTargets.contains(media.attachedTo));
+      for (final target in _proofTargets.reversed) {
+        _media.insert(
+          0,
+          MediaRecord(
+            id: 'M-$uploadId-$target',
+            assetPath: relativePath,
+            label: 'Uploaded proof photo',
+            attachedTo: target,
+            storedInDocuments: true,
+          ),
+        );
+      }
+      for (final oldPath in oldPaths) {
+        if (oldPath != relativePath) {
+          unawaited(_mediaStore.deleteRelativePath(oldPath));
+        }
+      }
+      mediaReadback = 'Photo set on Board, Batch, and Photos.';
+    } else {
+      _media.insert(
+        0,
+        MediaRecord(
+          id: 'M-$uploadId',
+          assetPath: relativePath,
+          label: 'Uploaded proof photo',
+          attachedTo: attachedTo,
+          storedInDocuments: true,
+        ),
+      );
+      mediaReadback = 'Photo uploaded.';
+    }
     notifyListeners();
   }
 
@@ -287,34 +305,28 @@ class PrepBoardController extends ChangeNotifier {
       return;
     }
     await _mediaStore.saveRelativePathToGallery(media.assetPath);
-    mediaReadback = 'Saved ${media.label} to the system photo album.';
+    mediaReadback = 'Saved to Photos.';
     notifyListeners();
   }
 
   void replaceMedia(String mediaId) {
-    final index = _media.indexWhere((media) => media.id == mediaId);
-    if (index == -1) {
-      return;
-    }
-    final existing = _media[index];
-    _media[index] = MediaRecord(
-      id: existing.id,
-      assetPath: existing.assetPath == heroAsset ? batchAsset : heroAsset,
-      label: '${existing.label} replaced',
-      attachedTo: existing.attachedTo,
-    );
+    mediaReadback = 'Use Upload photo to replace the proof image.';
     notifyListeners();
   }
 
   void deleteMedia(String mediaId) {
     final existing = _media.where((media) => media.id == mediaId).toList();
-    for (final media in existing) {
-      if (media.storedInDocuments) {
-        _mediaStore.deleteRelativePath(media.assetPath);
-      }
+    final storedPaths = existing
+        .where((media) => media.storedInDocuments)
+        .map((media) => media.assetPath)
+        .toSet();
+    for (final relativePath in storedPaths) {
+      unawaited(_mediaStore.deleteRelativePath(relativePath));
     }
-    _media.removeWhere((media) => media.id == mediaId);
-    mediaReadback = 'Removed media $mediaId.';
+    _media.removeWhere((media) =>
+        media.id == mediaId ||
+        (media.storedInDocuments && storedPaths.contains(media.assetPath)));
+    mediaReadback = 'Photo removed.';
     notifyListeners();
   }
 

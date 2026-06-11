@@ -1,13 +1,10 @@
 import 'package:flutter/material.dart';
 
-import '../data/prep_seed_data.dart';
 import '../state/prep_board_controller.dart';
 import '../theme/prep_theme.dart';
-import '../widgets/media_widgets.dart';
 import '../widgets/operational_page.dart';
 import '../widgets/prep_widgets.dart';
 import '../widgets/status_widgets.dart';
-import 'state_entry_screen.dart' show StateEntryScreen;
 
 typedef BatchDetailActionContract = PrepBoardController;
 
@@ -25,14 +22,14 @@ class BatchDetailScreen extends StatelessWidget {
         final batch = controller.selectedBatch;
         final history = controller.historyForSelectedBatch();
         final exception = controller.openExceptionForSelectedBatch();
-        final media = controller.mediaFor('batch-detail');
 
         return OperationalPage(
           pageId: 'batch-detail',
-          title: pageContracts[1].title,
+          title: 'Batch Detail',
+          mediaTarget: 'batch-detail',
           children: [
             InfoCard(
-              title: 'Batch identity',
+              title: 'Selected batch',
               trailing: PrepStatusPill(
                 batch.state,
                 color: batch.blocked ? PrepTheme.error : PrepTheme.success,
@@ -47,58 +44,19 @@ class BatchDetailScreen extends StatelessWidget {
                   ),
                   const SizedBox(height: 8),
                   BatchSummary(batch: batch),
-                  const SizedBox(height: 10),
-                  Text(
-                    'Service window: ${batch.serviceWindow}; ${batch.minutesToWindow} minutes out.',
-                  ),
                 ],
               ),
             ),
             InfoCard(
-              title: 'Station assignment',
+              title: 'Next action',
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    'Assigned station: ${batch.station}',
+                    batch.note,
                     key: const Key('batch-detail-station-readback'),
                   ),
-                  Text('Owner ${batch.owner}; backup ${batch.backup}.'),
-                  Text('Quantity: ${batch.quantity} portions.'),
-                  const SizedBox(height: 8),
-                  Text('Station note: ${batch.note}'),
-                ],
-              ),
-            ),
-            const MediaRecordPanel(attachedTo: 'batch-detail', hero: true),
-            if (media.isNotEmpty) PrepMediaPreview(record: media.first),
-            const SizedBox(height: 12),
-            InfoCard(
-              title: 'State history preview',
-              trailing: PrepStatusPill('${media.length} media'),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  if (history.isEmpty)
-                    const Text('No saved state history for this batch yet.'),
-                  for (final log in history.take(3))
-                    Padding(
-                      padding: const EdgeInsets.only(bottom: 8),
-                      child: Text(
-                        '${log.savedAt} - ${log.station} - ${log.state} by ${log.owner}: ${log.note}',
-                        key: Key(
-                          'batch-detail-history-${log.savedAt}-${log.state}',
-                        ),
-                      ),
-                    ),
-                ],
-              ),
-            ),
-            InfoCard(
-              title: 'Edit and resolve controls',
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
+                  const SizedBox(height: 12),
                   Wrap(
                     spacing: 8,
                     runSpacing: 8,
@@ -107,22 +65,10 @@ class BatchDetailScreen extends StatelessWidget {
                         key: const Key('batch-detail-save-state-button'),
                         onPressed: () {
                           controller.selectBatch(batch.id);
-                          controller.saveState();
+                          controller.saveState(nextState: 'Ready');
                         },
-                        icon: const Icon(Icons.save_outlined),
-                        label: const Text('Save State'),
-                      ),
-                      OutlinedButton.icon(
-                        key: const Key('batch-detail-edit-state-button'),
-                        onPressed: () {
-                          controller.selectBatch(batch.id);
-                          Navigator.pushNamed(
-                            context,
-                            StateEntryScreen.routeName,
-                          );
-                        },
-                        icon: const Icon(Icons.edit_note),
-                        label: const Text('Edit State'),
+                        icon: const Icon(Icons.check_circle_outline),
+                        label: const Text('Save ready'),
                       ),
                       OutlinedButton.icon(
                         key: const Key('batch-detail-resolve-blocked-button'),
@@ -133,31 +79,45 @@ class BatchDetailScreen extends StatelessWidget {
                                 controller.resolveBlocked(batch.id);
                               },
                         icon: const Icon(Icons.task_alt),
-                        label: const Text('Resolve Blocked'),
+                        label: const Text('Clear block'),
                       ),
                     ],
                   ),
-                  const SizedBox(height: 10),
-                  if (controller.lastConfirmation != null)
+                  if (controller.lastConfirmation != null) ...[
+                    const SizedBox(height: 10),
                     Text(
                       controller.lastConfirmation!,
                       key: const Key('batch-detail-save-readback'),
                       style: const TextStyle(color: PrepTheme.success),
                     ),
-                  const SizedBox(height: 8),
-                  const Text('Save State uses 10 prep credits.'),
-                  if (controller.lastResolvedException != null)
+                  ],
+                  if (controller.lastResolvedException != null) ...[
+                    const SizedBox(height: 8),
                     Text(
                       controller.lastResolvedException!,
                       key: const Key('batch-detail-resolution-readback'),
                       style: const TextStyle(color: PrepTheme.success),
                     ),
-                  if (exception != null)
-                    Text(
-                      'Open blocker: ${exception.reason} (${exception.owner}).',
+                  ],
+                ],
+              ),
+            ),
+            InfoCard(
+              title: 'Recent history',
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  if (history.isEmpty) const Text('No saved updates yet.'),
+                  for (final log in history.take(2))
+                    Padding(
+                      padding: const EdgeInsets.only(bottom: 8),
+                      child: Text(
+                        '${log.savedAt} ${log.station}: ${log.state}',
+                        key: Key(
+                          'batch-detail-history-${log.savedAt}-${log.state}',
+                        ),
+                      ),
                     ),
-                  if (exception == null)
-                    const Text('No open blocker for the selected batch.'),
                 ],
               ),
             ),
